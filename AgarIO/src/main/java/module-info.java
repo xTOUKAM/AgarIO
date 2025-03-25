@@ -2,7 +2,6 @@ module iut.gon.agario {
     requires javafx.controls;
     requires javafx.fxml;
 
-
-    opens iut.gon.agario to javafx.fxml;
-    exports iut.gon.agario;
+    opens iut.gon.agario.main to javafx.graphics;
+    exports iut.gon.agario.main;
 }

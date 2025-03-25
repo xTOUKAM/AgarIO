@@ -22,7 +22,6 @@ public class Player extends Entity{
     private static final double COEFFICIENT_ATTENUATION = 0.3;
 
 
-
     public Player(double startX, double startY, double startMass, Color color) {
         this.id = idCounter++;
         this.x = new SimpleDoubleProperty(startX);
