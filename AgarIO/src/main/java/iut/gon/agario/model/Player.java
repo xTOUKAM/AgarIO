@@ -17,10 +17,16 @@ public class Player {
     private double speed;
     private final Color color;
     private double directionX, directionY;
+    private long lastSpeedBoostTime = 0;
     private static final double MIN_SPEED = 0;
-    private static final double MAX_SPEED = 100.0;
+    private static final double INITIAL_MAX_SPEED = 100.0;
+    private static final double COEFFICIENT_ATTENUATION = 0.3;
     private static final double ABSORPTION_RATIO = 1.33;
     private static final double MERGE_OVERLAP = 0.33;
+    private static final double DECAY_FACTOR = 5.0;
+    private static final long SPEED_DECAY_DURATION = 1300;
+    private static final long CONTROL_RADIUS = 1000;
+
 
     public Player(double startX, double startY, double startMass, Color color) {
         this.id = idCounter++;
@@ -30,7 +36,7 @@ public class Player {
         this.color = color;
         this.representation = new Circle(calculateRadius(startMass), this.color);
         bindProperties();
-        this.speed = MAX_SPEED / Math.sqrt(this.getMass());
+        this.speed = currentMaxSpeed() / Math.sqrt(this.getMass());
     }
 
     private void bindProperties() {
@@ -103,10 +109,20 @@ public class Player {
         if(distance == 0) {
             this.speed = MIN_SPEED;
         }else{
-            double maxSpeed = MAX_SPEED / Math.sqrt(this.getMass());
+            double maxSpeed = currentMaxSpeed() / Math.sqrt(this.getMass());
             directionX = dx / distance;
             directionY = dy / distance;
-            speed = maxSpeed * (distance / 500.0);
+            if(this.speed > currentMaxSpeed()){
+                long elapsedTime = System.currentTimeMillis() - lastSpeedBoostTime;
+                if (elapsedTime >= SPEED_DECAY_DURATION) {
+                    this.speed = maxSpeed;
+                } else {
+                    double decayFactor = Math.exp(-DECAY_FACTOR * elapsedTime / SPEED_DECAY_DURATION);
+                    this.speed = maxSpeed + (this.speed - maxSpeed) * decayFactor;
+                }
+            }else {
+                this.speed = maxSpeed * Math.min(1.0, distance / CONTROL_RADIUS);
+            }
         }
         setX(this.getX() + directionX * speed);
         setY(this.getY() + directionY * speed);
@@ -142,7 +158,12 @@ public class Player {
         newCell.setX(this.getX() + directionX * 10);
         newCell.setY(this.getY() + directionY * 10);
         newCell.speed = this.speed * 3;
+        lastSpeedBoostTime = System.currentTimeMillis();
 
         return newCell;
+    }
+
+    public double currentMaxSpeed(){
+        return INITIAL_MAX_SPEED * Math.pow((10 / this.getMass()), COEFFICIENT_ATTENUATION);
     }
 }
