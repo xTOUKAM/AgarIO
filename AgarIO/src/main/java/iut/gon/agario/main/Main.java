@@ -16,7 +16,6 @@ public class Main extends Application {
         GameWorld gameWorld = new GameWorld(800, 600);
         LocalGameController gameController = new LocalGameController(gameWorld);
         LocalGameView gameView = new LocalGameView(gameWorld, gameController);
-
         Scene scene = new Scene(gameView.getRootPane(), 800, 600);
         primaryStage.setTitle("Agario Game");
         primaryStage.setScene(scene);

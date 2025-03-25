@@ -1,7 +1,6 @@
 package iut.gon.agario.view;
 
 import iut.gon.agario.controller.LocalGameController;
-import iut.gon.agario.model.Entity;
 import iut.gon.agario.model.GameWorld;
 import iut.gon.agario.model.Pastille;
 import iut.gon.agario.model.Player;
@@ -13,7 +12,6 @@ public class LocalGameView extends GameView {
     private final BorderPane rootPane;
     private final StackPane miniMapPane;
     private final Text scoreBoard;
-
     private  final  LocalGameController gameController;
 
     public LocalGameView(GameWorld gameWorld, LocalGameController gameController) {
