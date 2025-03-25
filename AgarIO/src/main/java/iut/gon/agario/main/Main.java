@@ -1,12 +1,9 @@
 package iut.gon.agario.main;
 
 import iut.gon.agario.controller.LocalGameController;
+import iut.gon.agario.model.*;
 import iut.gon.agario.model.AI.AIPlayer;
 import iut.gon.agario.model.AI.EatFoodStrategy;
-import iut.gon.agario.model.Camera;
-import iut.gon.agario.model.GameWorld;
-import iut.gon.agario.model.Pastille;
-import iut.gon.agario.model.Player;
 import iut.gon.agario.view.LocalGameView;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
@@ -176,7 +173,8 @@ public class Main extends Application {
 
         // Update score box
         scoreBox.getChildren().clear();
-        List<Player> topPlayers = gameWorld.getTopPlayers(10);
+        Leaderboard leaderboard = new Leaderboard(gameWorld);
+        List<Player> topPlayers = leaderboard.getLeaderboard(10);
     }
 
     private void checkCollisionsAI(Player currentPlayer) {
