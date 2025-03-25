@@ -138,7 +138,6 @@ public class Player {
         if((this.id == other.getId()) && (overlap(other) >= MERGE_OVERLAP)) {
             return true;
         }
-
         return (this.getMass() >= other.getMass() * ABSORPTION_RATIO) && (overlap(other) >= MERGE_OVERLAP);
     }
 
