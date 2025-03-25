@@ -1,12 +1,8 @@
 package iut.gon.serveur;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.net.InetAddress;
+import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.nio.charset.StandardCharsets;
 import java.util.LinkedList;
 import java.util.Scanner;
 
@@ -48,12 +44,16 @@ public class GameServer{
             try{
                 Socket newClientSocket = server.accept();
                 System.out.println("SERVER | new connection "+ newClientSocket.toString());
+                DataOutputStream clientOutputStream = new DataOutputStream(newClientSocket.getOutputStream());
                 synchronized (this.clientInput){
-                    this.clientInput.add(new PrintWriter(newClientSocket.getOutputStream(),true));
+                    this.clientInput.add(new PrintWriter(clientOutputStream,true));
                 }
-                newClientSocket.getOutputStream().write(lastID++);
+                clientOutputStream.writeByte(1);
+                clientOutputStream.writeUTF(String.valueOf(lastID++));
+                clientOutputStream.flush(); // Send off the data
+                clientOutputStream.close();
 
-                ClientHandler clientHandler= new ClientHandler(newClientSocket);
+                ClientHandler clientHandler = new ClientHandler(newClientSocket);
                 clientHandler.start();
 
             }catch (IOException e) {

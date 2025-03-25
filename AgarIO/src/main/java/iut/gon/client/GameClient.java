@@ -1,7 +1,7 @@
 package iut.gon.client;
 
+import java.io.DataInputStream;
 import java.io.IOException;
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 
@@ -20,13 +20,15 @@ public class GameClient {
     public static void main(String[] args) {
         InetSocketAddress address = new InetSocketAddress(args[0], Integer.parseInt(args[1]));
         GameClient gameClient = new GameClient(address);
-        byte[] data;
+
+        DataInputStream dIn = null;
         try {
-            data = gameClient.socket.getInputStream().readAllBytes();
+            dIn = new DataInputStream(gameClient.socket.getInputStream());
+            byte messageType = dIn.readByte();
+            System.out.println("Message A: " + dIn.readUTF());
+            dIn.close();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        System.out.println(new String(data));
-
     }
 }
