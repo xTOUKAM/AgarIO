@@ -165,4 +165,8 @@ public class Player {
     public double currentMaxSpeed(){
         return INITIAL_MAX_SPEED * Math.pow((10 / this.getMass()), COEFFICIENT_ATTENUATION);
     }
+
+    public void setMaxSpeed(double val){
+        this.speed = val;
+    }
 }
