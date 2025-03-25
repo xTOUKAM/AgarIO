@@ -20,7 +20,7 @@ public class Leaderboard {
     }
 
     public List<Player> getLeaderboard(int topN) {
-        if (sortedPlayers.isEmpty()){
+        if (sortedPlayers == null){
             topPlayers(topN);
         }
         return sortedPlayers;
