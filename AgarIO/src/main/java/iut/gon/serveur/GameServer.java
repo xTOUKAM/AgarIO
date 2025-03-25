@@ -13,6 +13,7 @@ public class GameServer{
     private final LinkedList<PrintWriter> clientInputs;
     public ServerSocket server;
     private int lastID = 1;
+    boolean running = true;
 
 
     public GameServer(int port){
@@ -36,7 +37,7 @@ public class GameServer{
 
         System.out.println("SERVER | started successfully");
         try{
-            while(true){
+            while(running){
 
                 Socket newClientSocket = server.accept();
                 System.out.println("SERVER | new connection "+ newClientSocket.toString());
@@ -46,7 +47,7 @@ public class GameServer{
                 }
                 //send id to client
                 clientOutput.write("0\n");
-                clientOutput.write(String.valueOf(lastID++) + "\n");
+                clientOutput.write(lastID++ + "\n");
                 clientOutput.flush(); // Send off the data
 
                 //set up socket for the game
@@ -85,16 +86,15 @@ public class GameServer{
 
         //SERVER STOP
         Scanner inputReader = new Scanner(System.in);
-        boolean running = true;
-        while (running){
-            while (inputReader.hasNext()){
+
+        while (gameServer.running){
+            if(inputReader.hasNext()){
                 if("stop".equals(inputReader.next())){
-                    running = false;
+                    gameServer.running = false;
                     //TODO send error message to all client
                     gameServer.sendToAllClient(MessageType.SERVER_STOP, "stop");
-                    gameClock.interrupt();
-                    lisenningThread.interrupt();
                     System.out.println("SERVER | stopped successfully");
+                    System.exit(0);
                 }
             }
         }
