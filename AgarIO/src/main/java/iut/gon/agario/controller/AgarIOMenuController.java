@@ -1,4 +1,4 @@
-package iut.gon.agario;
+package iut.gon.agario.controller;
 
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
