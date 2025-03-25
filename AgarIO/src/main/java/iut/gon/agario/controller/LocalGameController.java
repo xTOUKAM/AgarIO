@@ -1,10 +1,13 @@
 package iut.gon.agario.controller;
 
+import iut.gon.agario.model.*;
 import iut.gon.agario.model.AI.AIPlayer;
-import iut.gon.agario.model.GameWorld;
-import iut.gon.agario.model.Player;
+
+import java.util.List;
 
 public class LocalGameController extends GameController {
+    private List<Player> playersInRenderDistance;
+    private  List<Pastille> pastillesInRenderDistance;
     public LocalGameController(GameWorld gameWorld) {
         super(gameWorld);
     }
@@ -18,5 +21,23 @@ public class LocalGameController extends GameController {
                 aiPlayer.makeDecision(gameWorld);
             }
         }
+        //TODO : get a chunk and display it with all its entities with zoom
+        //get a chunk
+        //temp
+        double x = 0;
+        double y = 0;
+        double wd = 0;
+        double ht = 100;
+        //take camera zoom into account
+        Boundary queryBoundary = new Boundary(x,y,wd,ht);
+        playersInRenderDistance = gameWorld.getQuadTree().retrieveAllPlayersInBoundary(queryBoundary);
+        pastillesInRenderDistance = gameWorld.getQuadTree().retrieveAllPastillesInBoundary(queryBoundary);
+    }
+
+    public List<Player> getPlayesInRenderDistance(){
+        return playersInRenderDistance;
+    }
+    public List<Pastille> getPastillesInRenderDistance(){
+        return pastillesInRenderDistance;
     }
 }

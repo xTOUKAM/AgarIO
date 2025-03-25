@@ -56,4 +56,11 @@ public class Boundary {
                 y < other.y + other.height &&
                 y + height > other.y);
     }
+
+    public boolean intersectsWithEntity(Entity other){
+        return (x < other.getX() + other.getWidth() &&
+                x + width > other.getX() &&
+                y < other.getY() + other.getHeight() &&
+                y + height > other.getY());
+    }
 }

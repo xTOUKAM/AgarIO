@@ -87,4 +87,8 @@ public class GameWorld {
     public double getHeight() {
         return height.get();
     }
+
+    public QuadTree getQuadTree() {
+        return quadTree;
+    }
 }

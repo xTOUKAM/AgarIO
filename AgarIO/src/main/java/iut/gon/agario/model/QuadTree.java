@@ -121,4 +121,49 @@ public class QuadTree {
             objects.remove(entity);
         }
     }
+
+    public List<Player> retrieveAllPlayersInBoundary(Boundary queryBoundary) {
+        List<Player> returnObjects = new ArrayList<>();
+        if (!bounds.intersects(queryBoundary)) {
+            return returnObjects;
+        }
+
+        for (Entity entity : objects) {
+            if (queryBoundary.intersectsWithEntity(entity)) {
+                if(entity instanceof Player){
+                    returnObjects.add((Player) entity);
+                }
+            }
+        }
+
+        if (nodes[0] != null) {
+            for (QuadTree node : nodes) {
+                returnObjects.addAll(node.retrieveAllPlayersInBoundary(queryBoundary));
+            }
+        }
+
+        return returnObjects;
+    }
+
+    public List<Pastille> retrieveAllPastillesInBoundary(Boundary queryBoundary) {
+        List<Pastille> returnObjects = new ArrayList<>();
+        if (!bounds.intersects(queryBoundary)) {
+            return returnObjects;
+        }
+
+        for (Entity entity : objects) {
+            if (queryBoundary.intersectsWithEntity(entity)) {
+                if(entity instanceof Pastille){
+                    returnObjects.add((Pastille) entity);
+                }
+            }
+        }
+
+        if (nodes[0] != null) {
+            for (QuadTree node : nodes) {
+                returnObjects.addAll(node.retrieveAllPastillesInBoundary(queryBoundary));
+            }
+        }
+        return returnObjects;
+    }
 }

@@ -1,7 +1,10 @@
 package iut.gon.agario.view;
 
 import iut.gon.agario.controller.LocalGameController;
+import iut.gon.agario.model.Entity;
 import iut.gon.agario.model.GameWorld;
+import iut.gon.agario.model.Pastille;
+import iut.gon.agario.model.Player;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.text.Text;
@@ -11,11 +14,14 @@ public class LocalGameView extends GameView {
     private final StackPane miniMapPane;
     private final Text scoreBoard;
 
+    private  final  LocalGameController gameController;
+
     public LocalGameView(GameWorld gameWorld, LocalGameController gameController) {
         super(gameWorld);
         this.rootPane = new BorderPane();
         this.miniMapPane = new StackPane();
         this.scoreBoard = new Text();
+        this.gameController = gameController;
         initializeLocalGameView();
     }
 
@@ -45,6 +51,12 @@ public class LocalGameView extends GameView {
     public void updateView() {
         super.updateView();
         updateScoreboard();
+        for (Player player : gameController.getPlayesInRenderDistance()) {
+            rootPane.getChildren().add(player.getRepresentation());
+        }
+        for (Pastille pastille : gameController.getPastillesInRenderDistance()){
+            rootPane.getChildren().add((pastille.getRepresentation()));
+        }
     }
 
     public BorderPane getRootPane() {
