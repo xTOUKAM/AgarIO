@@ -23,8 +23,8 @@ public class GameServer{
     //TODO use game state from game engine
     public void sendGameState(){
         for(PrintWriter clientInput: clientInputs){
-            clientInput.write(2);
-            clientInput.write("Game data");
+            clientInput.write("2\n");
+            clientInput.write("Game data\n");
             clientInput.flush();
         }
     }
@@ -43,8 +43,8 @@ public class GameServer{
                     this.clientInputs.add(clientOutput);
                 }
                 //send id to client
-                clientOutput.write(1);
-                clientOutput.write(String.valueOf(lastID++));
+                clientOutput.write("1\n");
+                clientOutput.write(String.valueOf(lastID++) + "\n");
                 clientOutput.flush(); // Send off the data
 
                 //set up socket for the game
