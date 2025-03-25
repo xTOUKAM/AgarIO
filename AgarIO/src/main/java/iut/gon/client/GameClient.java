@@ -20,13 +20,24 @@ public class GameClient {
     public static void main(String[] args) {
         InetSocketAddress address = new InetSocketAddress(args[0], Integer.parseInt(args[1]));
         GameClient gameClient = new GameClient(address);
-
-        DataInputStream dIn = null;
         try {
-            dIn = new DataInputStream(gameClient.socket.getInputStream());
-            dIn.readByte();
-            System.out.println("Message A: " + dIn.readUTF());
+            while(true) {
+                DataInputStream serverData = null;
 
+                serverData = new DataInputStream(gameClient.socket.getInputStream());
+                switch (serverData.readByte()){
+                    case 1:
+                        System.out.println("Mon id : " + serverData.readUTF());
+                        serverData.readUTF();
+                        break;
+                    case 2:
+                        //TODO send data to client renderer
+                        System.out.println(serverData.readUTF());
+                        break;
+                    default:
+                        throw new IOException("error in server data");
+                }
+            }
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
