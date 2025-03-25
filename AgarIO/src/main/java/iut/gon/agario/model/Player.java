@@ -7,7 +7,7 @@ import javafx.beans.property.SimpleDoubleProperty;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 
-public class Player {
+public class Player implements Entity {
     private static int idCounter = 0;
     private final int id;
     private final Circle representation;
@@ -26,7 +26,6 @@ public class Player {
     private static final double DECAY_FACTOR = 5.0;
     private static final long SPEED_DECAY_DURATION = 1300;
     private static final long CONTROL_RADIUS = 1000;
-
 
     public Player(double startX, double startY, double startMass, Color color) {
         this.id = idCounter++;
@@ -61,6 +60,7 @@ public class Player {
         return representation;
     }
 
+    @Override
     public double getX() {
         return x.get();
     }
@@ -73,6 +73,7 @@ public class Player {
         return x;
     }
 
+    @Override
     public double getY() {
         return y.get();
     }
@@ -93,7 +94,7 @@ public class Player {
         this.mass.set(mass);
     }
 
-    public Color getColor(){
+    public Color getColor() {
         return this.color;
     }
 
@@ -101,18 +102,18 @@ public class Player {
         return mass;
     }
 
-    public void move(double cursorX, double cursorY){
+    public void move(double cursorX, double cursorY) {
         double dx = cursorX - this.getX();
         double dy = cursorY - this.getY();
         double distance = Math.sqrt(dx * dx + dy * dy);
 
-        if(distance == 0) {
+        if (distance == 0) {
             this.speed = MIN_SPEED;
-        }else{
+        } else {
             double maxSpeed = currentMaxSpeed() / Math.sqrt(this.getMass());
             directionX = dx / distance;
             directionY = dy / distance;
-            if(this.speed > currentMaxSpeed()){
+            if (this.speed > currentMaxSpeed()) {
                 long elapsedTime = System.currentTimeMillis() - lastSpeedBoostTime;
                 if (elapsedTime >= SPEED_DECAY_DURATION) {
                     this.speed = maxSpeed;
@@ -120,7 +121,7 @@ public class Player {
                     double decayFactor = Math.exp(-DECAY_FACTOR * elapsedTime / SPEED_DECAY_DURATION);
                     this.speed = maxSpeed + (this.speed - maxSpeed) * decayFactor;
                 }
-            }else {
+            } else {
                 this.speed = maxSpeed * Math.min(1.0, distance / CONTROL_RADIUS);
             }
         }
@@ -128,21 +129,21 @@ public class Player {
         setY(this.getY() + directionY * speed);
     }
 
-    public double overlap(Player other){
+    public double overlap(Player other) {
         double distance = Math.sqrt(Math.pow(this.getX() - other.getX(), 2) + Math.pow(this.getY() - other.getY(), 2));
         double combinedRadius = this.calculateRadius(this.getMass()) + other.calculateRadius(this.getMass());
         return (combinedRadius - distance) / combinedRadius;
     }
 
-    public boolean canAbsorb(Player other){
-        if((this.id == other.getId()) && (overlap(other) >= MERGE_OVERLAP)) {
+    public boolean canAbsorb(Player other) {
+        if ((this.id == other.getId()) && (overlap(other) >= MERGE_OVERLAP)) {
             return true;
         }
         return (this.getMass() >= other.getMass() * ABSORPTION_RATIO) && (overlap(other) >= MERGE_OVERLAP);
     }
 
-    public void absorb(Player other){
-        if(canAbsorb(other)){
+    public void absorb(Player other) {
+        if (canAbsorb(other)) {
             this.setMass(this.getMass() + other.getMass());
         }
     }
@@ -162,11 +163,20 @@ public class Player {
         return newCell;
     }
 
-    public double currentMaxSpeed(){
+    public double currentMaxSpeed() {
         return INITIAL_MAX_SPEED * Math.pow((10 / this.getMass()), COEFFICIENT_ATTENUATION);
     }
 
     public void setMaxSpeed(double val){
         this.speed = val;
+    }
+    @Override
+    public double getWidth() {
+        return this.representation.getRadius() * 2;
+    }
+
+    @Override
+    public double getHeight() {
+        return this.representation.getRadius() * 2;
     }
 }

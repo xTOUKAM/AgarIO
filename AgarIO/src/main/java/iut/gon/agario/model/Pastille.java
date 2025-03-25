@@ -5,7 +5,7 @@ import javafx.beans.property.SimpleDoubleProperty;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 
-public class Pastille {
+public class Pastille implements Entity {
     private static int idCounter = 0;
     private final int id;
     private final Circle representation;
@@ -36,6 +36,7 @@ public class Pastille {
         return representation;
     }
 
+    @Override
     public double getX() {
         return x.get();
     }
@@ -48,6 +49,7 @@ public class Pastille {
         return x;
     }
 
+    @Override
     public double getY() {
         return y.get();
     }
@@ -70,5 +72,15 @@ public class Pastille {
 
     public DoubleProperty radiusProperty() {
         return radius;
+    }
+
+    @Override
+    public double getWidth() {
+        return radius.get() * 2;
+    }
+
+    @Override
+    public double getHeight() {
+        return radius.get() * 2;
     }
 }
