@@ -24,9 +24,9 @@ public class GameClient {
         DataInputStream dIn = null;
         try {
             dIn = new DataInputStream(gameClient.socket.getInputStream());
-            byte messageType = dIn.readByte();
+            dIn.readByte();
             System.out.println("Message A: " + dIn.readUTF());
-            dIn.close();
+
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
