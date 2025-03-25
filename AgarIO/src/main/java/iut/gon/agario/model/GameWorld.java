@@ -1,5 +1,6 @@
 package iut.gon.agario.model;
 
+import iut.gon.agario.model.fabrique.FabriquePastille;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.collections.FXCollections;
@@ -86,5 +87,17 @@ public class GameWorld {
 
     public double getHeight() {
         return height.get();
+    }
+
+    public void deleteEntity(Entity entity){
+        if (entity instanceof Player){
+            players.remove(entity);
+            entity = null;
+        } else if (entity instanceof Pastille){
+            pastilles.remove(entity);
+            entity = null;
+            FabriquePastille fabPast = new FabriquePastille(this);
+            pastilles.add((Pastille) fabPast.fabrique());
+        }
     }
 }
