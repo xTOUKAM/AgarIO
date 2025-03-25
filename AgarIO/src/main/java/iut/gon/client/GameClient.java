@@ -1,46 +1,75 @@
 package iut.gon.client;
 
 import java.io.BufferedReader;
-import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.InetSocketAddress;
+import java.net.InetAddress;
 import java.net.Socket;
 
 public class GameClient {
 
-    private final Socket socket;
 
-    public GameClient(InetSocketAddress serverAddress){
-        try {
-            this.socket = new Socket(serverAddress.getAddress(), serverAddress.getPort());
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
+    public static void startConnection(BufferedReader serverOutput){
+        try{
+            boolean keepListening = true;
 
-    public static void main(String[] args) {
-        InetSocketAddress address = new InetSocketAddress(args[0], Integer.parseInt(args[1]));
-        GameClient gameClient = new GameClient(address);
-        BufferedReader serverData = null;
-        try {
-            serverData = new BufferedReader(new InputStreamReader(gameClient.socket.getInputStream()));
-            while(true) {
+            while(keepListening) {
+                switch (MessageType.values()[Integer.parseInt(serverOutput.readLine())]){
 
-                switch (Integer.parseInt(serverData.readLine())){
-                    case 1:
-                        System.out.println("Mon id : " + serverData.readLine());
+                    case ID:
+                        System.out.println("Mon id : " + serverOutput.readLine());
                         break;
-                    case 2:
+
+                    case GAME_STATE:
                         //TODO send data to client renderer
-                        System.out.println(serverData.readLine());
+                        System.out.println(serverOutput.readLine());
                         break;
+
+                    case SERVER_STOP:
+                        System.out.println("Server stopped");
+                        keepListening = false;
+                        break;
+
                     default:
-                        throw new IOException("error in server data");
+                        keepListening = false;
+                        System.out.println("Server stopped unexpectedly");
+
                 }
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+
+    public static void launch(String serverAddress, int serverPort) {
+
+        //Connection to server
+        final Socket socket;
+        try {
+            socket = new Socket(InetAddress.getByName(serverAddress), serverPort);
+        } catch (IOException e) {
+            System.out.println("CLIENT | error while trying to connect to server");
+            throw new RuntimeException(e);
+        }
+
+
+        try{
+            BufferedReader serverOutput = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            Thread ConnectionToServer = new Thread(() -> startConnection(serverOutput));
+            ConnectionToServer.start();
+
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        //TODO run client game renderer
+    }
+
+
+
+
+    public static void main(String[] args) {
+        GameClient.launch(args[0], Integer.parseInt(args[1]));
     }
 }

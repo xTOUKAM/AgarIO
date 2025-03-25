@@ -1,5 +1,7 @@
 package iut.gon.serveur;
 
+import iut.gon.client.MessageType;
+
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -20,11 +22,11 @@ public class GameServer{
         } catch (IOException e) {throw new RuntimeException(e);}
     }
 
-    //TODO use game state from game engine
-    public void sendGameState(){
+
+    public void sendToAllClient(MessageType messageType, String data){
         for(PrintWriter clientInput: clientInputs){
-            clientInput.write("2\n");
-            clientInput.write("Game data\n");
+            clientInput.write(messageType.ordinal()+"\n");
+            clientInput.write(data +"\n");
             clientInput.flush();
         }
     }
@@ -43,7 +45,7 @@ public class GameServer{
                     this.clientInputs.add(clientOutput);
                 }
                 //send id to client
-                clientOutput.write("1\n");
+                clientOutput.write("0\n");
                 clientOutput.write(String.valueOf(lastID++) + "\n");
                 clientOutput.flush(); // Send off the data
 
@@ -66,32 +68,30 @@ public class GameServer{
 
         //TODO LAUNCH GAME ENGINE THREAD
 
+
         Thread gameClock = new Thread(()->{
             try {
                 while (true) {
-                    gameServer.sendGameState();
+                    //TODO use game state from game engine
+                    gameServer.sendToAllClient(MessageType.GAME_STATE,"Game data");
                     Thread.sleep(1000);
                 }
             } catch (InterruptedException e) {
-                System.out.println("error with server clock");
+                System.out.println(" ");
             }
         });
         gameClock.start();
 
 
-
-
         //SERVER STOP
         Scanner inputReader = new Scanner(System.in);
         boolean running = true;
-        //test for server stop
         while (running){
             while (inputReader.hasNext()){
                 if("stop".equals(inputReader.next())){
-                    System.out.printf("stop received");
                     running = false;
                     //TODO send error message to all client
-
+                    gameServer.sendToAllClient(MessageType.SERVER_STOP, "stop");
                     gameClock.interrupt();
                     lisenningThread.interrupt();
                     System.out.println("SERVER | stopped successfully");
