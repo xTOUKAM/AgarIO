@@ -1,13 +1,17 @@
 package iut.gon.agario.model;
 
+import iut.gon.agario.model.*;
 import iut.gon.agario.model.fabrique.FabriquePastille;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.paint.Color;
 
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.stream.Collectors;
 
 public class GameWorld {
     private final DoubleProperty width;
@@ -109,8 +113,6 @@ public class GameWorld {
     }
 
     public double overlap(Entity other, Player player){
-
-
         double distance = Math.sqrt(Math.pow(player.getX() - other.getX(), 2) + Math.pow(player.getY() - other.getY(), 2));
         double combinedRadius = player.calculateRadius(player.getMass()) + other.calculateRadius(player.getMass());
         return (combinedRadius - distance) / combinedRadius;
@@ -120,7 +122,6 @@ public class GameWorld {
         if((player.getId() == other.getId()) && (overlap(other,player) >= MERGE_OVERLAP)) {
             return true;
         }
-
         return (player.getMass() >= other.getMass() * ABSORPTION_RATIO) && (overlap(other,player) >= MERGE_OVERLAP);
     }
 
@@ -138,7 +139,7 @@ public class GameWorld {
 
         if(distance == 0) {
             player.setSpeed(MIN_SPEED);
-        }else{
+        } else {
             double maxSpeed = player.currentMaxSpeed() / Math.sqrt(player.getMass());
             player.setDirectionX(dx / distance);
             player.setDirectionY(dy / distance);
@@ -150,7 +151,7 @@ public class GameWorld {
                     double decayFactor = Math.exp(-DECAY_FACTOR * elapsedTime / SPEED_DECAY_DURATION);
                     player.setSpeed(maxSpeed + (player.getSpeed() - maxSpeed) * decayFactor);
                 }
-            }else {
+            } else {
                 player.setSpeed(maxSpeed * Math.min(1.0, distance / CONTROL_RADIUS));
             }
         }
@@ -158,4 +159,20 @@ public class GameWorld {
         player.setY(player.getY() + player.getDirectionY() * player.getSpeed());
     }
 
+    public void draw(GraphicsContext gc, Camera camera) {
+        gc.clearRect(0, 0, getWidth(), getHeight());
+        gc.setFill(Color.GREEN);
+        for (Player player : players) {
+            if (camera.getViewBounds().contains(player.getX(), player.getY())) {
+                gc.fillOval(player.getX(), player.getY(), player.getWidth(), player.getHeight());
+            }
+        }
+    }
+
+    public List<Player> getTopPlayers(int topN) {
+        return players.stream()
+                .sorted((p1, p2) -> Double.compare(p2.getMass(), p1.getMass()))
+                .limit(topN)
+                .collect(Collectors.toList());
+    }
 }

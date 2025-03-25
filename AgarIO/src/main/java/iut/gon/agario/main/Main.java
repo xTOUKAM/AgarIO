@@ -3,6 +3,7 @@ package iut.gon.agario.main;
 import iut.gon.agario.controller.LocalGameController;
 import iut.gon.agario.model.AI.AIPlayer;
 import iut.gon.agario.model.AI.EatFoodStrategy;
+import iut.gon.agario.model.Camera;
 import iut.gon.agario.model.GameWorld;
 import iut.gon.agario.model.Pastille;
 import iut.gon.agario.model.Player;
@@ -11,7 +12,12 @@ import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Application;
 import javafx.scene.Scene;
+import javafx.scene.canvas.Canvas;
+import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.util.Duration;
@@ -24,14 +30,18 @@ import static javafx.application.Application.launch;
 
 public class Main extends Application {
 
-    private static final int WIDTH = 1280;
-    private static final int HEIGHT = 720;
+    public static final int CANVAS_WIDTH = 200;
+    public static final int CANVAS_HEIGHT = 200;
+    public static final int WIDTH = 1280;
+    public static final int HEIGHT = 720;
     private static final int NUM_PASTILLES = 100;
     private static final int NUM_BOTS = 5;
     private List<Pastille> pastilles;
     private List<AIPlayer> bots;
     private Player player;
     private GameWorld gameWorld;
+    private Camera camera;
+    private Canvas gameCanvas;
 
     @Override
     public void start(Stage primaryStage) {
@@ -48,6 +58,10 @@ public class Main extends Application {
         pastilles = new ArrayList<>();
         bots = new ArrayList<>();
 
+        // Create game canvas
+        gameCanvas = new Canvas(WIDTH, HEIGHT);
+        root.getChildren().add(gameCanvas);
+
         // Spawn pastilles
         spawnPastilles(root);
 
@@ -57,12 +71,40 @@ public class Main extends Application {
         // Spawn player
         spawnPlayer(root);
 
+        // Create camera
+        camera = new Camera(player);
+
+        // Create mini-map
+        Canvas miniMap = new Canvas(CANVAS_WIDTH, CANVAS_HEIGHT);
+        miniMap.setLayoutX(WIDTH - 210);
+        miniMap.setLayoutY(HEIGHT - 210);
+        root.getChildren().add(miniMap);
+
+        // Score box
+        VBox scoreBox = new VBox();
+        scoreBox.setLayoutX(WIDTH - 210);
+        scoreBox.setLayoutY(10);
+        root.getChildren().add(scoreBox);
+
+        // Chat box
+        TextArea chatHistory = new TextArea();
+        chatHistory.setPrefHeight(100);
+        chatHistory.setDisable(true);
+        chatHistory.setLayoutX(10);
+        chatHistory.setLayoutY(HEIGHT - 120);
+        root.getChildren().add(chatHistory);
+
+        TextField chatInput = new TextField();
+        chatInput.setLayoutX(10);
+        chatInput.setLayoutY(HEIGHT - 30);
+        root.getChildren().add(chatInput);
+
         scene.setOnMouseMoved(e -> {
             gameWorld.move(e.getX(), e.getY(), player);
         });
 
         // Game loop
-        Timeline timeline = new Timeline(new KeyFrame(Duration.millis(20), e -> update()));
+        Timeline timeline = new Timeline(new KeyFrame(Duration.millis(20), e -> update(miniMap, scoreBox)));
         timeline.setCycleCount(Timeline.INDEFINITE);
         timeline.play();
     }
@@ -98,7 +140,7 @@ public class Main extends Application {
         gameWorld.addPlayer(player);
     }
 
-    private void update() {
+    private void update(Canvas miniMap, VBox scoreBox) {
         // Update bots movements
         for (AIPlayer bot : bots) {
             bot.makeDecision(gameWorld);
@@ -112,6 +154,29 @@ public class Main extends Application {
             checkCollisions(bot);
             checkCollisionsAI(player);
         }
+
+        camera.update();
+        render(miniMap, scoreBox);
+    }
+
+    private void render(Canvas miniMap, VBox scoreBox) {
+        // Clear the mini-map
+        GraphicsContext miniMapGC = miniMap.getGraphicsContext2D();
+        miniMapGC.clearRect(0, 0, miniMap.getWidth(), miniMap.getHeight());
+
+        // Draw players on mini-map
+        for (Player player : gameWorld.getPlayers()) {
+            miniMapGC.fillOval(player.getX() / 4, player.getY() / 4, 5, 5);
+        }
+
+        // Draw game world (centered on player)
+        GraphicsContext gameGC = gameCanvas.getGraphicsContext2D();
+        gameGC.clearRect(0, 0, gameCanvas.getWidth(), gameCanvas.getHeight());
+        gameWorld.draw(gameGC, camera);
+
+        // Update score box
+        scoreBox.getChildren().clear();
+        List<Player> topPlayers = gameWorld.getTopPlayers(10);
     }
 
     private void checkCollisionsAI(Player currentPlayer) {
