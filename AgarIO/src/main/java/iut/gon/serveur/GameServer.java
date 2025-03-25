@@ -23,8 +23,9 @@ public class GameServer{
     //TODO use game state from game engine
     public void sendGameState(){
         for(PrintWriter clientInput: clientInputs){
-            clientInput.println(2);
-            clientInput.println("Game state");
+            clientInput.write(2);
+            clientInput.write("Game data");
+            clientInput.flush();
         }
     }
 
@@ -37,14 +38,14 @@ public class GameServer{
 
                 Socket newClientSocket = server.accept();
                 System.out.println("SERVER | new connection "+ newClientSocket.toString());
-                DataOutputStream clientOutputStream = new DataOutputStream(newClientSocket.getOutputStream());
+                PrintWriter clientOutput = new PrintWriter(newClientSocket.getOutputStream(), false);
                 synchronized (this.clientInputs){
-                    this.clientInputs.add(new PrintWriter(clientOutputStream,true));
+                    this.clientInputs.add(clientOutput);
                 }
                 //send id to client
-                clientOutputStream.writeByte(1);
-                clientOutputStream.writeUTF(String.valueOf(lastID++));
-                clientOutputStream.flush(); // Send off the data
+                clientOutput.write(1);
+                clientOutput.write(String.valueOf(lastID++));
+                clientOutput.flush(); // Send off the data
 
                 //set up socket for the game
                 ClientHandler clientHandler = new ClientHandler(newClientSocket);
@@ -64,14 +65,19 @@ public class GameServer{
 
 
         //TODO LAUNCH GAME ENGINE THREAD
-        try {
-            while (true) {
-                gameServer.sendGameState();
-                Thread.sleep(1000);
+
+        Thread gameClock = new Thread(()->{
+            try {
+                while (true) {
+                    gameServer.sendGameState();
+                    Thread.sleep(1000);
+                }
+            } catch (InterruptedException e) {
+                System.out.println("error with server clock");
             }
-        } catch (InterruptedException e) {
-            System.out.println("error with server clock");
-        }
+        });
+        gameClock.start();
+
 
 
 
@@ -82,11 +88,15 @@ public class GameServer{
         while (running){
             while (inputReader.hasNext()){
                 if("stop".equals(inputReader.next())){
+                    System.out.printf("stop received");
                     running = false;
                     //TODO send error message to all client
+
+                    gameClock.interrupt();
+                    lisenningThread.interrupt();
+                    System.out.println("SERVER | stopped successfully");
                 }
             }
         }
-        System.out.println("SERVER | stopped successfully");
     }
 }
