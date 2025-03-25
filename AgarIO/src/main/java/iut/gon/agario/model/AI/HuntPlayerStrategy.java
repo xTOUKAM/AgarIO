@@ -14,7 +14,7 @@ public class HuntPlayerStrategy implements AIDecisionStrategy {
         double minDistance = Double.MAX_VALUE;
 
         for(Player other : players) {
-            if(aiPlayer.canAbsorb(other)) {
+            if(gameWorld.canAbsorb(other, aiPlayer)) {
                 double distance = Math.sqrt(Math.pow(aiPlayer.getX() - other.getX(),2) + Math.pow(aiPlayer.getY() - other.getY(), 2));
 
                 if(distance < minDistance) {
@@ -24,7 +24,7 @@ public class HuntPlayerStrategy implements AIDecisionStrategy {
             }
         }
         if (target != null) {
-            aiPlayer.move(target.getX(), target.getY());
+            gameWorld.move(target.getX(), target.getY(), aiPlayer);
         }
     }
 }

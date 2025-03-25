@@ -23,7 +23,7 @@ public class EatFoodStrategy implements AIDecisionStrategy{
             }
         }
         if (target != null) {
-            aiPlayer.move(target.getX(), target.getY());
+            gameWorld.move(target.getX(), target.getY(), aiPlayer);
         }
     }
 }

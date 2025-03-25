@@ -1,17 +1,17 @@
 package iut.gon.agario.model;
 
-public abstract class Entity {
+public interface  Entity {
 
-    abstract int getId();
-    abstract double getX();
+     int getId();
+     double getX();
 
-    abstract double getY();
+     double getY();
 
-    abstract double getMass();
+     double getMass();
 
-    abstract double getWidth();
+     double getWidth();
 
-    abstract double getHeight();
+     double getHeight();
 
-    abstract double calculateRadius(double mass);
+     double calculateRadius(double mass);
 }

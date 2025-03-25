@@ -18,7 +18,6 @@ public class GameWorld {
 
     private static final double ABSORPTION_RATIO = 1.33;
     private static final double MERGE_OVERLAP = 0.33;
-    private static final long MINIMUM_SPLIT = 40;
     private static final double DECAY_FACTOR = 5.0;
     private static final long SPEED_DECAY_DURATION = 1300;
     private static final long CONTROL_RADIUS = 1000;
@@ -125,26 +124,11 @@ public class GameWorld {
         return (player.getMass() >= other.getMass() * ABSORPTION_RATIO) && (overlap(other,player) >= MERGE_OVERLAP);
     }
 
-    public void absorb(Entity other, Player player){
-        if(canAbsorb(other, player)){
+    public void absorb(Entity other, Player player) {
+        if (canAbsorb(other, player)) {
             player.setMass(player.getMass() + other.getMass());
             deleteEntity(other);
         }
-    }
-
-    public Player split(Player player) {
-        if (player.getMass() < MINIMUM_SPLIT) return null;
-
-        double newMass = player.getMass() / 2;
-        player.setMass(newMass);
-        Player newCell = new Player(player.getX(), player.getY(), newMass, player.getColor());
-
-        newCell.setX(player.getX() + player.getDirectionX() * 10);
-        newCell.setY(player.getY() + player.getDirectionY() * 10);
-        newCell.setSpeed(player.getSpeed() * 3);
-        player.SetLastSpeedBoostTime(System.currentTimeMillis());
-
-        return newCell;
     }
 
     public void move(double cursorX, double cursorY, Player player){

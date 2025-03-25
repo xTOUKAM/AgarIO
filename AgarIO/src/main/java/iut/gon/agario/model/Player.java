@@ -7,7 +7,7 @@ import javafx.beans.property.SimpleDoubleProperty;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 
-public class Player extends Entity{
+public class Player implements Entity {
     private static int idCounter = 0;
     private final int id;
     private final Circle representation;
@@ -20,7 +20,7 @@ public class Player extends Entity{
     private long lastSpeedBoostTime = 0;
     private static final double INITIAL_MAX_SPEED = 100.0;
     private static final double COEFFICIENT_ATTENUATION = 0.3;
-
+    private static final long MINIMUM_SPLIT = 40;
 
     public Player(double startX, double startY, double startMass, Color color) {
         this.id = idCounter++;
@@ -56,6 +56,7 @@ public class Player extends Entity{
         return representation;
     }
 
+    @Override
     public double getX() {
         return x.get();
     }
@@ -68,6 +69,7 @@ public class Player extends Entity{
         return x;
     }
 
+    @Override
     public double getY() {
         return y.get();
     }
@@ -112,21 +114,11 @@ public class Player extends Entity{
         return mass.get();
     }
 
-    @Override
-    double getWidth() {
-        return 0;
-    }
-
-    @Override
-    double getHeight() {
-        return 0;
-    }
-
     public void setMass(double mass) {
         this.mass.set(mass);
     }
 
-    public Color getColor(){
+    public Color getColor() {
         return this.color;
     }
 
@@ -134,7 +126,35 @@ public class Player extends Entity{
         return mass;
     }
 
-    public double currentMaxSpeed(){
+    public double currentMaxSpeed() {
         return INITIAL_MAX_SPEED * Math.pow((10 / this.getMass()), COEFFICIENT_ATTENUATION);
+    }
+
+    public void setMaxSpeed(double val){
+        this.speed = val;
+    }
+    @Override
+    public double getWidth() {
+        return this.representation.getRadius() * 2;
+    }
+
+    @Override
+    public double getHeight() {
+        return this.representation.getRadius() * 2;
+    }
+
+    public Player split() {
+        if (this.getMass() < MINIMUM_SPLIT) return null;
+
+        double newMass = this.getMass() / 2;
+        this.setMass(newMass);
+        Player newCell = new Player(this.getX(), this.getY(), newMass, this.getColor());
+
+        newCell.setX(this.getX() + this.getDirectionX() * 10);
+        newCell.setY(this.getY() + this.getDirectionY() * 10);
+        newCell.setSpeed(this.getSpeed() * 3);
+        this.SetLastSpeedBoostTime(System.currentTimeMillis());
+
+        return newCell;
     }
 }
