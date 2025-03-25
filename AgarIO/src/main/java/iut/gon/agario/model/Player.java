@@ -7,7 +7,7 @@ import javafx.beans.property.SimpleDoubleProperty;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 
-public class Player {
+public class Player extends Entity{
     private static int idCounter = 0;
     private final int id;
     private final Circle representation;
@@ -26,6 +26,7 @@ public class Player {
     private static final double DECAY_FACTOR = 5.0;
     private static final long SPEED_DECAY_DURATION = 1300;
     private static final long CONTROL_RADIUS = 1000;
+    private static final long MINIMUM_SPLIT = 40;
 
 
     public Player(double startX, double startY, double startMass, Color color) {
@@ -49,10 +50,11 @@ public class Player {
         this.representation.radiusProperty().bind(radiusBinding);
     }
 
-    private double calculateRadius(double mass) {
+    @Override
+    public double calculateRadius(double mass) {
         return 10 * Math.sqrt(mass);
     }
-
+    @Override
     public int getId() {
         return id;
     }
@@ -85,9 +87,26 @@ public class Player {
         return y;
     }
 
+    @Override
     public double getMass() {
         return mass.get();
     }
+
+    @Override
+    double getWidth() {
+        return 0;
+    }
+
+    @Override
+    double getHeight() {
+        return 0;
+    }
+
+    /*@Override
+    void destruct() {
+        this.setX(null);
+        this.setY(null);
+    }*/
 
     public void setMass(double mass) {
         this.mass.set(mass);
@@ -128,13 +147,13 @@ public class Player {
         setY(this.getY() + directionY * speed);
     }
 
-    public double overlap(Player other){
+    public double overlap(Entity other){
         double distance = Math.sqrt(Math.pow(this.getX() - other.getX(), 2) + Math.pow(this.getY() - other.getY(), 2));
         double combinedRadius = this.calculateRadius(this.getMass()) + other.calculateRadius(this.getMass());
         return (combinedRadius - distance) / combinedRadius;
     }
 
-    public boolean canAbsorb(Player other){
+    public boolean canAbsorb(Entity other){
         if((this.id == other.getId()) && (overlap(other) >= MERGE_OVERLAP)) {
             return true;
         }
@@ -142,14 +161,15 @@ public class Player {
         return (this.getMass() >= other.getMass() * ABSORPTION_RATIO) && (overlap(other) >= MERGE_OVERLAP);
     }
 
-    public void absorb(Player other){
+    public void absorb(Entity other){
         if(canAbsorb(other)){
             this.setMass(this.getMass() + other.getMass());
+            other.destruct();
         }
     }
 
     public Player split() {
-        if (this.getMass() < 20) return null;
+        if (this.getMass() < MINIMUM_SPLIT) return null;
 
         double newMass = this.getMass() / 2;
         this.setMass(newMass);
