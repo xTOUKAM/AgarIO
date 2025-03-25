@@ -16,6 +16,14 @@ public class GameWorld {
     private final ObservableList<Pastille> pastilles;
     private final QuadTree quadTree;
 
+    private static final double ABSORPTION_RATIO = 1.33;
+    private static final double MERGE_OVERLAP = 0.33;
+    private static final long MINIMUM_SPLIT = 40;
+    private static final double DECAY_FACTOR = 5.0;
+    private static final long SPEED_DECAY_DURATION = 1300;
+    private static final long CONTROL_RADIUS = 1000;
+    private static final double MIN_SPEED = 0;
+
     public GameWorld(double width, double height) {
         this.width = new SimpleDoubleProperty(width);
         this.height = new SimpleDoubleProperty(height);
@@ -100,4 +108,70 @@ public class GameWorld {
             pastilles.add((Pastille) fabPast.fabrique());
         }
     }
+
+    public double overlap(Entity other, Player player){
+
+
+        double distance = Math.sqrt(Math.pow(player.getX() - other.getX(), 2) + Math.pow(player.getY() - other.getY(), 2));
+        double combinedRadius = player.calculateRadius(player.getMass()) + other.calculateRadius(player.getMass());
+        return (combinedRadius - distance) / combinedRadius;
+    }
+
+    public boolean canAbsorb(Entity other, Player player){
+        if((player.getId() == other.getId()) && (overlap(other,player) >= MERGE_OVERLAP)) {
+            return true;
+        }
+
+        return (player.getMass() >= other.getMass() * ABSORPTION_RATIO) && (overlap(other,player) >= MERGE_OVERLAP);
+    }
+
+    public void absorb(Entity other, Player player){
+        if(canAbsorb(other, player)){
+            player.setMass(player.getMass() + other.getMass());
+            deleteEntity(other);
+        }
+    }
+
+    public Player split(Player player) {
+        if (player.getMass() < MINIMUM_SPLIT) return null;
+
+        double newMass = player.getMass() / 2;
+        player.setMass(newMass);
+        Player newCell = new Player(player.getX(), player.getY(), newMass, player.getColor());
+
+        newCell.setX(player.getX() + player.getDirectionX() * 10);
+        newCell.setY(player.getY() + player.getDirectionY() * 10);
+        newCell.setSpeed(player.getSpeed() * 3);
+        player.SetLastSpeedBoostTime(System.currentTimeMillis());
+
+        return newCell;
+    }
+
+    public void move(double cursorX, double cursorY, Player player){
+        double dx = cursorX - player.getX();
+        double dy = cursorY - player.getY();
+        double distance = Math.sqrt(dx * dx + dy * dy);
+
+        if(distance == 0) {
+            player.setSpeed(MIN_SPEED);
+        }else{
+            double maxSpeed = player.currentMaxSpeed() / Math.sqrt(player.getMass());
+            player.setDirectionX(dx / distance);
+            player.setDirectionY(dy / distance);
+            if(player.getSpeed() > player.currentMaxSpeed()){
+                long elapsedTime = System.currentTimeMillis() - player.GetLastSpeedBoostTime();
+                if (elapsedTime >= SPEED_DECAY_DURATION) {
+                    player.setSpeed(maxSpeed);
+                } else {
+                    double decayFactor = Math.exp(-DECAY_FACTOR * elapsedTime / SPEED_DECAY_DURATION);
+                    player.setSpeed(maxSpeed + (player.getSpeed() - maxSpeed) * decayFactor);
+                }
+            }else {
+                player.setSpeed(maxSpeed * Math.min(1.0, distance / CONTROL_RADIUS));
+            }
+        }
+        player.setX(player.getX() + player.getDirectionX() * player.getSpeed());
+        player.setY(player.getY() + player.getDirectionY() * player.getSpeed());
+    }
+
 }

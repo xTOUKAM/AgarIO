@@ -18,15 +18,9 @@ public class Player extends Entity{
     private final Color color;
     private double directionX, directionY;
     private long lastSpeedBoostTime = 0;
-    private static final double MIN_SPEED = 0;
     private static final double INITIAL_MAX_SPEED = 100.0;
     private static final double COEFFICIENT_ATTENUATION = 0.3;
-    private static final double ABSORPTION_RATIO = 1.33;
-    private static final double MERGE_OVERLAP = 0.33;
-    private static final double DECAY_FACTOR = 5.0;
-    private static final long SPEED_DECAY_DURATION = 1300;
-    private static final long CONTROL_RADIUS = 1000;
-    private static final long MINIMUM_SPLIT = 40;
+
 
 
     public Player(double startX, double startY, double startMass, Color color) {
@@ -83,6 +77,33 @@ public class Player extends Entity{
         this.y.set(y);
     }
 
+    public double getDirectionX() {
+        return this.directionX;
+    }
+    public void setDirectionX(double x) {
+        this.directionX = x;
+    }
+
+    public double getDirectionY() {
+        return this.directionY;
+    }
+    public void setDirectionY(double y) {
+        this.directionY = y;
+    }
+
+    public double getSpeed() {
+        return this.speed;
+    }
+    public void setSpeed(double speed) {
+        this.speed = speed;
+    }
+    public long GetLastSpeedBoostTime(){
+        return this.lastSpeedBoostTime;
+    }
+    public void SetLastSpeedBoostTime(long last){
+        this.lastSpeedBoostTime = last;
+    }
+
     public DoubleProperty yProperty() {
         return y;
     }
@@ -112,68 +133,6 @@ public class Player extends Entity{
 
     public DoubleProperty massProperty() {
         return mass;
-    }
-
-    public void move(double cursorX, double cursorY){
-        double dx = cursorX - this.getX();
-        double dy = cursorY - this.getY();
-        double distance = Math.sqrt(dx * dx + dy * dy);
-
-        if(distance == 0) {
-            this.speed = MIN_SPEED;
-        }else{
-            double maxSpeed = currentMaxSpeed() / Math.sqrt(this.getMass());
-            directionX = dx / distance;
-            directionY = dy / distance;
-            if(this.speed > currentMaxSpeed()){
-                long elapsedTime = System.currentTimeMillis() - lastSpeedBoostTime;
-                if (elapsedTime >= SPEED_DECAY_DURATION) {
-                    this.speed = maxSpeed;
-                } else {
-                    double decayFactor = Math.exp(-DECAY_FACTOR * elapsedTime / SPEED_DECAY_DURATION);
-                    this.speed = maxSpeed + (this.speed - maxSpeed) * decayFactor;
-                }
-            }else {
-                this.speed = maxSpeed * Math.min(1.0, distance / CONTROL_RADIUS);
-            }
-        }
-        setX(this.getX() + directionX * speed);
-        setY(this.getY() + directionY * speed);
-    }
-
-    public double overlap(Entity other){
-        double distance = Math.sqrt(Math.pow(this.getX() - other.getX(), 2) + Math.pow(this.getY() - other.getY(), 2));
-        double combinedRadius = this.calculateRadius(this.getMass()) + other.calculateRadius(this.getMass());
-        return (combinedRadius - distance) / combinedRadius;
-    }
-
-    public boolean canAbsorb(Entity other){
-        if((this.id == other.getId()) && (overlap(other) >= MERGE_OVERLAP)) {
-            return true;
-        }
-
-        return (this.getMass() >= other.getMass() * ABSORPTION_RATIO) && (overlap(other) >= MERGE_OVERLAP);
-    }
-
-    public void absorb(Entity other){
-        if(canAbsorb(other)){
-            this.setMass(this.getMass() + other.getMass());
-        }
-    }
-
-    public Player split() {
-        if (this.getMass() < MINIMUM_SPLIT) return null;
-
-        double newMass = this.getMass() / 2;
-        this.setMass(newMass);
-        Player newCell = new Player(this.getX(), this.getY(), newMass, this.getColor());
-
-        newCell.setX(this.getX() + directionX * 10);
-        newCell.setY(this.getY() + directionY * 10);
-        newCell.speed = this.speed * 3;
-        lastSpeedBoostTime = System.currentTimeMillis();
-
-        return newCell;
     }
 
     public double currentMaxSpeed(){
