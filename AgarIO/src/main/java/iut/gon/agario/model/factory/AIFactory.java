@@ -1,17 +1,18 @@
 package iut.gon.agario.model.factory;
 
+import iut.gon.agario.model.AI.AIPlayer;
 import iut.gon.agario.model.Entity;
 import iut.gon.agario.model.GameWorld;
-import iut.gon.agario.model.Pellet;
+import iut.gon.agario.model.Player;
 import javafx.scene.paint.Color;
 
 import java.util.Random;
 
-public class PelletFactory extends Factory {
+public class AIFactory extends Factory{
+
 
     private GameWorld gameWorld;
-
-    public PelletFactory(GameWorld gameWorld){
+    public AIFactory(GameWorld gameWorld) {
         super(gameWorld);
         this.gameWorld = gameWorld;
     }
@@ -25,6 +26,6 @@ public class PelletFactory extends Factory {
         int g = rand.nextInt(255);
         int b = rand.nextInt(255);
         Color color = Color.rgb(r,g,b);
-        return (Entity) new Pellet(X,Y,5, color);
+        return (Entity) new AIPlayer(X,Y,10, color);
     }
 }

@@ -1,5 +1,6 @@
 package iut.gon.agario.model;
 
+import iut.gon.agario.model.AI.AIPlayer;
 import iut.gon.agario.model.factory.PelletFactory;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
@@ -44,12 +45,12 @@ public class GameWorld {
         quadTree.remove((Entity) player);
     }
 
-    public void addPastille(Pellet pellet) {
+    public void addPellet(Pellet pellet) {
         pellets.add(pellet);
         quadTree.insert((Entity) pellet);
     }
 
-    public void removePastille(Pellet pellet) {
+    public void removePellet(Pellet pellet) {
         pellets.remove(pellet);
         quadTree.remove((Entity) pellet);
     }
@@ -69,7 +70,14 @@ public class GameWorld {
                 if (entity instanceof Pellet pellet) {
                     if (player.getRepresentation().getBoundsInParent().intersects(pellet.getRepresentation().getBoundsInParent())) {
                         player.setMass(player.getMass() + pellet.getRadius());
-                        removePastille(pellet);
+                        removePellet(pellet);
+                    }
+                } else if(entity instanceof AIPlayer ai){
+                    if (player != ai && player.getRepresentation().getBoundsInParent().intersects(ai.getRepresentation().getBoundsInParent())) {
+                        if (player.getMass() >= ai.getMass() * 1.33) {
+                            player.setMass(player.getMass() + ai.getMass());
+                            removePlayer(ai);
+                        }
                     }
                 } else if (entity instanceof Player otherPlayer) {
                     if (player != otherPlayer && player.getRepresentation().getBoundsInParent().intersects(otherPlayer.getRepresentation().getBoundsInParent())) {

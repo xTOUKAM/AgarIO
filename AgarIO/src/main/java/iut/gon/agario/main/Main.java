@@ -3,6 +3,9 @@ package iut.gon.agario.main;
 import iut.gon.agario.model.*;
 import iut.gon.agario.model.AI.AIPlayer;
 import iut.gon.agario.model.AI.EatFoodStrategy;
+import iut.gon.agario.model.factory.AIFactory;
+import iut.gon.agario.model.factory.PelletFactory;
+import iut.gon.agario.model.factory.PlayerFactory;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Application;
@@ -30,7 +33,7 @@ public class Main extends Application {
     public static final int CANVAS_HEIGHT = 200;
     public static final int WIDTH = 1280;
     public static final int HEIGHT = 720;
-    private static final int NUM_PASTILLES = 100;
+    private static final int NUM_PELLETS = 100;
     private static final int NUM_BOTS = 5;
     private List<Pellet> pellets;
     private List<AIPlayer> bots;
@@ -65,7 +68,7 @@ public class Main extends Application {
         root.getChildren().add(gameCanvas);
 
         // Spawn pellets
-        spawnPastilles(root);
+        spawnPellets(root);
 
         // Spawn bots
         spawnBots(root);
@@ -111,24 +114,22 @@ public class Main extends Application {
         timeline.play();
     }
 
-    private void spawnPastilles(Pane root) {
+    private void spawnPellets(Pane root) {
         Random rand = new Random();
-        for (int i = 0; i < NUM_PASTILLES; i++) {
-            double x = rand.nextDouble() * WIDTH;
-            double y = rand.nextDouble() * HEIGHT;
-            Pellet pellet = new Pellet(x, y, 5, Color.GREEN);
+        for (int i = 0; i < NUM_PELLETS; i++) {
+            PelletFactory pelletFactory = new PelletFactory(gameWorld);
+            Pellet pellet = (Pellet) pelletFactory.factory();
             pellets.add(pellet);
             root.getChildren().add(pellet.getRepresentation());
-            gameWorld.addPastille(pellet);
+            gameWorld.addPellet(pellet);
         }
     }
 
     private void spawnBots(Pane root) {
         Random rand = new Random();
         for (int i = 0; i < NUM_BOTS; i++) {
-            double x = rand.nextDouble() * WIDTH;
-            double y = rand.nextDouble() * HEIGHT;
-            AIPlayer bot = new AIPlayer(x, y, 20, Color.RED);
+            AIFactory aiFactory = new AIFactory(gameWorld);
+            AIPlayer bot = (AIPlayer) aiFactory.factory();
             bot.setStrategy(new EatFoodStrategy());
             bots.add(bot);
             root.getChildren().add(bot.getRepresentation());
@@ -137,7 +138,9 @@ public class Main extends Application {
     }
 
     private void spawnPlayer(Pane root) {
-        player = new Player(WIDTH / 2, HEIGHT / 2, 30, Color.BLUE);
+        PlayerFactory playerFactory = new PlayerFactory(gameWorld);
+        Player p = (Player) playerFactory.factory();
+        player = p;
         root.getChildren().add(player.getRepresentation());
         gameWorld.addPlayer(player);
     }
