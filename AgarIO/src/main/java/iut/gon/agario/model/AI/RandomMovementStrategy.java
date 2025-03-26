@@ -2,7 +2,7 @@ package iut.gon.agario.model.AI;
 
 import iut.gon.agario.model.Entity;
 import iut.gon.agario.model.GameWorld;
-import iut.gon.agario.model.Pastille;
+import iut.gon.agario.model.Pellet;
 import iut.gon.agario.model.Player;
 
 import java.util.List;
@@ -29,7 +29,7 @@ public class RandomMovementStrategy implements AIDecisionStrategy {
         // Determine targets and adjust direction
         List<Entity> nearbyEntities = gameWorld.getQuadTree().retrieve(aiPlayer);
         for (Entity entity : nearbyEntities) {
-            if (entity instanceof Pastille) {
+            if (entity instanceof Pellet) {
                 // Move towards the pastille
                 directionX = entity.getX() - aiPlayer.getX();
                 directionY = entity.getY() - aiPlayer.getY();
