@@ -30,10 +30,10 @@ public class Main extends Application {
 
     public static final int CANVAS_WIDTH = 200;
     public static final int CANVAS_HEIGHT = 200;
-    public static final int WIDTH = 1280;
-    public static final int HEIGHT = 720;
+    public static final int WIDTH = 1580;
+    public static final int HEIGHT = 1000;
     private static final int NUM_PASTILLES = 100;
-    private static final int NUM_BOTS = 5;
+    private static final int NUM_BOTS = 10;
     private List<Pastille> pastilles;
     private List<AIPlayer> bots;
     private Player player;
@@ -116,7 +116,7 @@ public class Main extends Application {
         });
 
         // Game loop
-        Timeline timeline = new Timeline(new KeyFrame(Duration.millis(20), e -> {
+        Timeline timeline = new Timeline(new KeyFrame(Duration.millis(33), e -> {
             update(miniMap, scoreBox);
             compositePlayer.update();
             gameWorld.move(x,y,player);}));
@@ -232,6 +232,17 @@ public class Main extends Application {
             for (Player player : compositePlayer.getPlayers()) {
                 if (player.getRepresentation().getParent() instanceof Pane parent) {
                     parent.getChildren().remove(pastille.getRepresentation());
+                }
+            }
+        }
+
+        List<Player> players = compositePlayer.getPlayers();
+        for (Player player1 : players) {
+            for (Player player2 : players) {
+                if (player1.getMass() > player2.getMass()) {
+                    gameWorld.absorb(player2, player1);
+                } else {
+                    gameWorld.absorb(player1, player2);
                 }
             }
         }
