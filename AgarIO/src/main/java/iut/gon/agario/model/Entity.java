@@ -1,5 +1,7 @@
 package iut.gon.agario.model;
 
+import javafx.scene.shape.Circle;
+
 public interface  Entity {
 
      int getId();
@@ -14,4 +16,6 @@ public interface  Entity {
      double getHeight();
 
      double calculateRadius(double mass);
+
+     Circle getRepresentation();
 }

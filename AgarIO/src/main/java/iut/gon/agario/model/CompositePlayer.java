@@ -1,5 +1,11 @@
 package iut.gon.agario.model;
 
+import javafx.beans.binding.Bindings;
+import javafx.beans.binding.DoubleBinding;
+import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.SimpleDoubleProperty;
+import javafx.scene.shape.Circle;
+
 import javafx.scene.paint.Color;
 import java.util.ArrayList;
 import java.util.List;
@@ -7,25 +13,49 @@ import java.util.List;
 public class CompositePlayer implements Entity {
     private final List<Player> players = new ArrayList<>();
     private final GameWorld gameWorld;
-    private double x;
-    private double y;
+    private final DoubleProperty x;
+    private final DoubleProperty y;
     private static final long MINIMUM_SPLIT = 40;
+    private double speed;
+    private double directionX, directionY;
+    private long lastSpeedBoostTime;
+    private final DoubleProperty mass;
+    private final Circle representation;
+    private final int id;
+    private final Color color;
 
-    // Constructeur
-    public CompositePlayer(Player initialPlayer, GameWorld gameWorld) {
+    // Constructeur pour le composite player avec l'ID du joueur
+    public CompositePlayer(int playerId, Player initialPlayer, GameWorld gameWorld) {
         this.gameWorld = gameWorld;
         players.add(initialPlayer);
-        this.x = calculateCompositeX();
-        this.y = calculateCompositeY();
+        this.x = new SimpleDoubleProperty(calculateCompositeX());
+        this.y = new SimpleDoubleProperty(calculateCompositeY());
+        this.mass = new SimpleDoubleProperty(initialPlayer.getMass());
+        this.color = initialPlayer.getColor();
+        this.representation = new Circle(calculateRadius(initialPlayer.getMass()));
+        bindProperties();
+        this.speed = initialCurrentMaxSpeed() / Math.sqrt(this.getMass());
+        this.id = playerId;  // Assignation de l'ID passé en paramètre
     }
 
-    // Méthode pour effectuer un split des joueurs du composite
+    // Méthode pour lier les propriétés
+    private void bindProperties() {
+        this.representation.centerXProperty().bind(this.x);
+        this.representation.centerYProperty().bind(this.y);
+        DoubleBinding radiusBinding = Bindings.createDoubleBinding(
+                () -> calculateRadius(this.mass.get()),
+                this.mass
+        );
+        this.representation.radiusProperty().bind(radiusBinding);
+    }
+
+    // Split des joueurs du composite
     public void split(double cursorX, double cursorY) {
         List<Player> newCells = new ArrayList<>();
 
         for (Player player : players) {
             if (player.getMass() >= MINIMUM_SPLIT) {
-                Player newCell = player.split(cursorX, cursorY);
+                Player newCell = player.split();
                 if (newCell != null) {
                     newCells.add(newCell);
                     gameWorld.addEntity(newCell);
@@ -35,9 +65,9 @@ public class CompositePlayer implements Entity {
         players.addAll(newCells);
     }
 
-    // Méthode de déplacement de toutes les cellules du composite player
+    // Déplacement du composite player et de ses cellules
     public void move(double cursorX, double cursorY) {
-        boolean moving = Math.abs(cursorX - this.x) > 1 || Math.abs(cursorY - this.y) > 1;
+        boolean moving = Math.abs(cursorX - this.x.get()) > 1 || Math.abs(cursorY - this.y.get()) > 1;
 
         for (Player player : players) {
             gameWorld.move(cursorX, cursorY, player);
@@ -66,6 +96,9 @@ public class CompositePlayer implements Entity {
         }
     }
 
+    public double initialCurrentMaxSpeed() {
+        return 100.0 * Math.pow((10 / this.getMass()), 0.3);
+    }
 
     // Calculer la masse totale de toutes les cellules
     public double getTotalMass() {
@@ -74,10 +107,10 @@ public class CompositePlayer implements Entity {
 
     // Récupérer la couleur du composite player
     public Color getColor() {
-        return players.get(0).getColor();  // On suppose que toutes les cellules partagent la même couleur
+        return this.color;  // Toutes les cellules ont la même couleur
     }
 
-    // Méthode pour calculer la position X moyenne du composite player
+    // Calculer la position X moyenne du composite player
     private double calculateCompositeX() {
         double sumX = 0;
         for (Player player : players) {
@@ -86,7 +119,7 @@ public class CompositePlayer implements Entity {
         return sumX / players.size();
     }
 
-    // Méthode pour calculer la position Y moyenne du composite player
+    // Calculer la position Y moyenne du composite player
     private double calculateCompositeY() {
         double sumY = 0;
         for (Player player : players) {
@@ -98,13 +131,21 @@ public class CompositePlayer implements Entity {
     // Récupérer la position X du composite player
     @Override
     public double getX() {
-        return x;
+        return x.get();
+    }
+
+    public void setX(double x) {
+        this.x.set(x);
     }
 
     // Récupérer la position Y du composite player
     @Override
     public double getY() {
-        return y;
+        return y.get();
+    }
+
+    public void setY(double y) {
+        this.y.set(y);
     }
 
     // Récupérer la masse totale du composite player
@@ -113,28 +154,56 @@ public class CompositePlayer implements Entity {
         return getTotalMass();
     }
 
-    // Récupérer la largeur d'une cellule du composite player (toutes les cellules ont la même taille)
+    public void setMass(double Mass){
+        this.mass.set(Mass);
+    }
+
+    // Récupérer la largeur d'une cellule du composite player
     @Override
     public double getWidth() {
         return players.get(0).getWidth();
     }
 
-    // Récupérer la hauteur d'une cellule du composite player (toutes les cellules ont la même taille)
+    // Récupérer la hauteur d'une cellule du composite player
     @Override
     public double getHeight() {
         return players.get(0).getHeight();
     }
 
-    // Récupérer l'ID du composite player (celui de la première cellule)
+    // Récupérer l'ID du composite player
     @Override
     public int getId() {
-        return players.get(0).getId();
+        return id;
+    }
+
+    public double getDirectionX() {
+        return this.directionX;
+    }
+
+    public void setDirectionX(double x) {
+        this.directionX = x;
+    }
+
+    public double getDirectionY() {
+        return this.directionY;
+    }
+
+    public void setDirectionY(double y) {
+        this.directionY = y;
+    }
+
+    public double getSpeed() {
+        return this.speed;
+    }
+
+    public void setSpeed(double speed) {
+        this.speed = speed;
     }
 
     // Calculer le rayon du composite player basé sur la masse totale
     @Override
     public double calculateRadius(double mass) {
-        return players.get(0).calculateRadius(mass);
+        return 10 * Math.sqrt(mass);
     }
 
     // Ajouter un joueur au composite
@@ -149,19 +218,16 @@ public class CompositePlayer implements Entity {
 
     // Mettre à jour la position et la masse du composite player
     public void update() {
-        // Déplacer chaque joueur du composite
         for (Player player : players) {
             gameWorld.move(player.getX(), player.getY(), player);
         }
-        // Mettre à jour la position du composite player (moyenne des positions des cellules)
-        this.x = calculateCompositeX();
-        this.y = calculateCompositeY();
+        this.x.set(calculateCompositeX());
+        this.y.set(calculateCompositeY());
     }
 
-    // Méthode pour gérer l'absorption des autres joueurs par ce composite player
+    // Absorber un autre joueur
     public void absorb(Entity other) {
         if (other instanceof Player otherPlayer) {
-            // Si l'absorption est possible, fusionner les masses des joueurs
             if (canAbsorb(otherPlayer)) {
                 for (Player player : players) {
                     player.setMass(player.getMass() + otherPlayer.getMass());
@@ -173,7 +239,20 @@ public class CompositePlayer implements Entity {
 
     // Vérifier si ce composite player peut absorber un autre joueur
     public boolean canAbsorb(Player otherPlayer) {
-        // Absorber un autre joueur si la masse du composite player est suffisante
         return this.getMass() > otherPlayer.getMass() * 1.33;
     }
+
+    public void GiveSpeedBoost() {
+        lastSpeedBoostTime = System.currentTimeMillis();
+    }
+
+    public long GetLastSpeedBoostTime() {
+        return lastSpeedBoostTime;
+    }
+
+    public Circle getRepresentation() {
+        return representation;
+    }
 }
+
+

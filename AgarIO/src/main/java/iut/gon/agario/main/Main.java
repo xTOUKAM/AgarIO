@@ -150,8 +150,9 @@ public class Main extends Application {
 
     private void spawnPlayer(Pane root) {
         Player player = new Player(WIDTH / 2, HEIGHT / 2, 30, Color.BLUE);
-        compositePlayer = new CompositePlayer(player, gameWorld);
-        root.getChildren().add(player.getRepresentation());
+        for (CompositePlayer cell : player.getCells()) {
+            root.getChildren().add(cell.getRepresentation());
+        }
     }
 
     private synchronized void update(Canvas miniMap, VBox scoreBox) {
@@ -173,7 +174,7 @@ public class Main extends Application {
         synchronized (this) {
             for (AIPlayer bot : botsCopy) {
                 // Crée un composite pour chaque bot
-                CompositePlayer compositeBot = new CompositePlayer(bot, gameWorld);
+                CompositePlayer compositeBot = new CompositePlayer(bot.getId(), bot, gameWorld);
 
                 // Vérifie les collisions entre les bots et le joueur composite
                 checkCollisions(compositeBot);
@@ -193,18 +194,6 @@ public class Main extends Application {
         // Rend la scène et met à jour le mini-map et le score
         render(miniMap, scoreBox);
     }
-/*
-
-
-        checkCollisions(compositePlayer); // Vérifie les collisions entre le joueur et les pastilles
-        checkCollisionsAI(compositePlayer); // Vérifie les collisions entre le joueur et les bots
-        gameWorld.checkBotCollisions(bots);  // Vérifier les collisions entre bots
-
-        // Redessiner la scène (y compris les positions des bots et du joueur)
-        compositePlayer.update();
-        render(miniMap, scoreBox);  // Redessine le jeu et met à jour les positions à chaque tick de la boucle
-    }
-*/
 
 
     private void render(Canvas miniMap, VBox scoreBox) {

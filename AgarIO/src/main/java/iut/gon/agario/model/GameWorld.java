@@ -189,7 +189,7 @@ public class GameWorld {
                 player.setDirectionX(dx / distance);
                 player.setDirectionY(dy / distance);
                 if (player.getSpeed() > player.currentMaxSpeed()) {
-                    long elapsedTime = System.currentTimeMillis() - player.GetLastSpeedBoostTime();
+                    long elapsedTime = System.currentTimeMillis() - player.getLastSpeedBoostTime();
                     if (elapsedTime >= SPEED_DECAY_DURATION) {
                         player.setSpeed(maxSpeed);
                     } else {

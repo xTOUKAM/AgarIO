@@ -1,19 +1,16 @@
 package iut.gon.agario.model;
 
-import javafx.beans.binding.Bindings;
-import javafx.beans.binding.DoubleBinding;
-import javafx.beans.property.DoubleProperty;
-import javafx.beans.property.SimpleDoubleProperty;
-import javafx.scene.paint.Color;
+import javafx.scene.layout.Pane;
 import javafx.scene.shape.Circle;
+
+import javafx.scene.paint.Color;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Player implements Entity {
     private static int idCounter = 0;
     private final int id;
-    private final Circle representation;
-    private final DoubleProperty x;
-    private final DoubleProperty y;
-    private final DoubleProperty mass;
+    private List<CompositePlayer> cells; // Liste des cellules
     private double speed;
     private final Color color;
     private double directionX, directionY;
@@ -23,163 +20,136 @@ public class Player implements Entity {
         return name;
     }
 
+    private GameWorld gameWorld;
+
     private long lastSpeedBoostTime = 0;
     private static final double INITIAL_MAX_SPEED = 100.0;
     private static final double COEFFICIENT_ATTENUATION = 0.3;
-
+    private static final long MINIMUM_SPLIT = 40;
 
     public Player(double startX, double startY, double startMass, Color color) {
         this.id = idCounter++;
-        this.x = new SimpleDoubleProperty(startX);
-        this.y = new SimpleDoubleProperty(startY);
-        this.mass = new SimpleDoubleProperty(startMass);
         this.color = color;
-        this.representation = new Circle(calculateRadius(startMass), this.color);
-        bindProperties();
-        this.speed = currentMaxSpeed() / Math.sqrt(this.getMass());
+        this.cells = new ArrayList<>();
+        this.cells.add(new CompositePlayer(id,this, gameWorld)); // Ajout d'une cellule au départ
+        this.speed = currentMaxSpeed() / Math.sqrt(startMass);
     }
 
-    private void bindProperties() {
-        this.representation.centerXProperty().bind(this.x);
-        this.representation.centerYProperty().bind(this.y);
-        DoubleBinding radiusBinding = Bindings.createDoubleBinding(
-                () -> calculateRadius(this.mass.get()),
-                this.mass
-        );
-        this.representation.radiusProperty().bind(radiusBinding);
+    public Player split() {
+        if (cells.size() > 0) {
+            CompositePlayer cell = cells.get(0);
+            if (cell.getMass() > 20) {
+                double newMass = cell.getMass() / 2;
+                cell.setMass(newMass);
+                CompositePlayer newCell1 = new CompositePlayer(idCounter++, this, gameWorld);
+                newCell1.GiveSpeedBoost();
+                if(cell.getRepresentation().getParent() instanceof Pane parent) {
+                    parent.getChildren().add(newCell1.getRepresentation());
+                }
+                this.cells.add(newCell1);
+                return newCell1.getPlayers().get(-1);
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public int getId() {
+        return id;
+    }
+
+    @Override
+    public double getX() {
+        return cells.get(0).getX();
+    }
+
+    public void setX(double x) {
+        cells.get(0).setX(x);
+    }
+
+    @Override
+    public double getY() {
+        return cells.get(0).getY();
+    }
+
+    public void setY(double y) {
+        cells.get(0).setY(y);
+    }
+
+    @Override
+    public double getMass() {
+        return cells.get(0).getMass();
+    }
+
+    public void setMass(double mass) {
+        cells.get(0).setMass(mass);
+    }
+
+    public double getSpeed() {
+        return cells.get(0).getSpeed();
+    }
+
+    public void setSpeed(double speed) {
+        cells.get(0).setSpeed(speed);
+    }
+
+    public double getDirectionX() {
+        return cells.get(0).getDirectionX();
+    }
+
+    public void setDirectionX(double x) {
+        cells.get(0).setDirectionX(x);
+    }
+
+    public double getDirectionY() {
+        return cells.get(0).getDirectionY();
+    }
+
+    public void setDirectionY(double y) {
+        cells.get(0).setDirectionY(y);
+    }
+
+    public long getLastSpeedBoostTime() {
+        return lastSpeedBoostTime;
+    }
+
+    public void setLastSpeedBoostTime(long lastSpeedBoostTime) {
+        this.lastSpeedBoostTime = lastSpeedBoostTime;
+    }
+
+    @Override
+    public double getWidth() {
+        return cells.get(0).getWidth();
+    }
+
+    @Override
+    public double getHeight() {
+        return cells.get(0).getHeight();
     }
 
     @Override
     public double calculateRadius(double mass) {
         return 10 * Math.sqrt(mass);
     }
-    @Override
-    public int getId() {
-        return id;
+
+    public double currentMaxSpeed() {
+        return 100.0 * Math.pow((10 / this.getMass()), 0.3);
     }
 
-    public Circle getRepresentation() {
-        return representation;
-    }
-
-    @Override
-    public double getX() {
-        return x.get();
-    }
-
-    public void setX(double x) {
-        this.x.set(x);
-    }
-
-    public DoubleProperty xProperty() {
-        return x;
-    }
-
-    @Override
-    public double getY() {
-        return y.get();
-    }
-
-    public void setY(double y) {
-        this.y.set(y);
-    }
-
-    public double getDirectionX() {
-        return this.directionX;
-    }
-    public void setDirectionX(double x) {
-        this.directionX = x;
-    }
-
-    public double getDirectionY() {
-        return this.directionY;
-    }
-    public void setDirectionY(double y) {
-        this.directionY = y;
-    }
-
-    public double getSpeed() {
-        return this.speed;
-    }
-    public void setSpeed(double speed) {
-        this.speed = speed;
-    }
-    public long GetLastSpeedBoostTime(){
-        return this.lastSpeedBoostTime;
-    }
-    public void SetLastSpeedBoostTime(long last){
-        this.lastSpeedBoostTime = last;
-    }
-
-    public DoubleProperty yProperty() {
-        return y;
-    }
-
-    @Override
-    public double getMass() {
-        return mass.get();
-    }
-
-    public void setMass(double mass) {
-        this.mass.set(mass);
+    public List<CompositePlayer> getCells() {
+        return cells;
     }
 
     public Color getColor() {
         return this.color;
     }
 
-    public DoubleProperty massProperty() {
-        return mass;
-    }
-
-    public double currentMaxSpeed() {
-        return INITIAL_MAX_SPEED * Math.pow((10 / this.getMass()), COEFFICIENT_ATTENUATION);
-    }
-
-    public void setMaxSpeed(double val){
-        this.speed = val;
-    }
     @Override
-    public double getWidth() {
-        return this.representation.getRadius() * 2;
+    public Circle getRepresentation(){
+        return cells.get(0).getRepresentation();
     }
 
-    @Override
-    public double getHeight() {
-        return this.representation.getRadius() * 2;
+    public CompositePlayer[] getCompositePlayer() {
+        return cells.toArray(new CompositePlayer[cells.size()]);
     }
-
-    public Player split(double cursorX, double cursorY) {
-        if (this.getMass() >= 2) {
-            double newMass = this.getMass() / 2;
-            this.setMass(newMass);
-
-            Player newCell = new Player(this.getX(), this.getY(), newMass, this.color);
-            newCell.bindProperties();
-
-            double dx = cursorX - this.getX();
-            double dy = cursorY - this.getY();
-            double distance = Math.sqrt(dx * dx + dy * dy);
-
-            if (distance == 0) {
-                dx = 1;
-                dy = 0;
-            } else {
-                dx /= distance;
-                dy /= distance;
-            }
-
-            double baseSpeed = currentMaxSpeed() / Math.sqrt(newMass);
-            newCell.setSpeed(baseSpeed * 3);
-            newCell.setDirectionX(dx);
-            newCell.setDirectionY(dy);
-
-            newCell.setX(this.getX() + dx * 200);
-            newCell.setY(this.getY() + dy * 200);
-
-            return newCell;
-        }
-        return null;
-    }
-
 }
