@@ -17,7 +17,6 @@ public class AIPlayer extends Player implements Entity {
     }
 
     public void makeDecision(GameWorld gameWorld) {
-        System.out.println("avant décision");
         strategy.makeDecision(this, gameWorld);
     }
 }
