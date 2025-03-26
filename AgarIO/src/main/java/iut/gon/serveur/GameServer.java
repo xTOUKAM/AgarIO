@@ -87,7 +87,7 @@ public class GameServer{
     }
 
     public static void main(String[] args) {
-        GameServer.launch(Integer.parseInt(args[0]));
+        GameServer.launch(1234);
     }
 
     public static void launch(int port){

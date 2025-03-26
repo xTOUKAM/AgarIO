@@ -59,7 +59,7 @@ public class GameClient {
                             keepListening = false;
                             System.out.println("CLIENT | server stopped unexpectedly");
                     }
-                } catch (IOException e) {
+                } catch (Exception e) {
                     keepListening = false;
                     System.out.println("CLIENT | server stopped unexpectedly");
                 }
@@ -69,7 +69,7 @@ public class GameClient {
     }
 
     public static void main(String[] args) {
-        GameClient.launch(args[0], Integer.parseInt(args[1]));
+        GameClient.launch("127.0.0.1", 1234);
     }
 
 
