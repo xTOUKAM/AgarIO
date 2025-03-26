@@ -1,11 +1,11 @@
-package iut.gon.agario.model.pastilles_speciales;
+package iut.gon.agario.model.specialpellets;
 
 import iut.gon.agario.model.Player;
 import javafx.scene.paint.Color;
 
-public class PastilleSplit extends PastilleSpeciale{
+public class SplitPellet extends SpecialPellet {
 
-    public PastilleSplit(double startX, double startY, double startRadius, Color color, Player player) {
+    public SplitPellet(double startX, double startY, double startRadius, Color color, Player player) {
         super(startX, startY, startRadius, color, player);
     }
 

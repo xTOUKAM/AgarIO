@@ -17,6 +17,12 @@ public class Player implements Entity {
     private double speed;
     private final Color color;
     private double directionX, directionY;
+    private String name;
+
+    public String getName() {
+        return name;
+    }
+
     private long lastSpeedBoostTime = 0;
     private static final double INITIAL_MAX_SPEED = 100.0;
     private static final double COEFFICIENT_ATTENUATION = 0.3;

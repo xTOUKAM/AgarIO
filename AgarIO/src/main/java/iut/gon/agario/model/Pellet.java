@@ -5,16 +5,15 @@ import javafx.beans.property.SimpleDoubleProperty;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 
-public class Pastille implements Entity {
+public class Pellet implements Entity {
     private static int idCounter = 0;
     private final int id;
     private final Circle representation;
     private final DoubleProperty x;
     private final DoubleProperty y;
     private final DoubleProperty radius;
-    private static final double PASTILLE_MASS = 5;
-
-    public Pastille(double startX, double startY, double startRadius, Color color) {
+    private static final double PELLET_MASS = 5;
+    public Pellet(double startX, double startY, double startRadius, Color color) {
         this.id = idCounter++;
         this.x = new SimpleDoubleProperty(startX);
         this.y = new SimpleDoubleProperty(startY);
@@ -66,7 +65,7 @@ public class Pastille implements Entity {
 
     @Override
     public double getMass() {
-        return PASTILLE_MASS;
+        return PELLET_MASS;
     }
 
     public DoubleProperty yProperty() {

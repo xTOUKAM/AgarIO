@@ -5,12 +5,16 @@ import iut.gon.agario.model.*;
 import iut.gon.agario.model.AI.AIPlayer;
 import iut.gon.agario.model.AI.EatFoodStrategy;
 import iut.gon.agario.view.LocalGameView;
+import iut.gon.agario.model.*;
+import iut.gon.agario.model.AI.AIPlayer;
+import iut.gon.agario.model.AI.EatFoodStrategy;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.Pane;
@@ -33,7 +37,7 @@ public class Main extends Application {
     public static final int HEIGHT = 720;
     private static final int NUM_PASTILLES = 100;
     private static final int NUM_BOTS = 5;
-    private List<Pastille> pastilles;
+    private List<Pellet> pellets;
     private List<AIPlayer> bots;
     private Player player;
     private GameWorld gameWorld;
@@ -42,6 +46,12 @@ public class Main extends Application {
 
     @Override
     public void start(Stage primaryStage) {
+        //will be used with quadtree
+        /*GameWorld gameWorld = new GameWorld(800, 600);
+        LocalGameController gameController = new LocalGameController(gameWorld);
+        LocalGameView gameView = new LocalGameView(gameWorld, gameController);
+        Scene scene = new Scene(gameView.getRootPane(), 800, 600);*/
+
         Pane root = new Pane();
         Scene scene = new Scene(root, WIDTH, HEIGHT);
         primaryStage.setTitle("Agario Game");
@@ -52,14 +62,14 @@ public class Main extends Application {
         gameWorld = new GameWorld(WIDTH, HEIGHT);
 
         // Initialize game elements
-        pastilles = new ArrayList<>();
+        pellets = new ArrayList<>();
         bots = new ArrayList<>();
 
         // Create game canvas
         gameCanvas = new Canvas(WIDTH, HEIGHT);
         root.getChildren().add(gameCanvas);
 
-        // Spawn pastilles
+        // Spawn pellets
         spawnPastilles(root);
 
         // Spawn bots
@@ -111,10 +121,10 @@ public class Main extends Application {
         for (int i = 0; i < NUM_PASTILLES; i++) {
             double x = rand.nextDouble() * WIDTH;
             double y = rand.nextDouble() * HEIGHT;
-            Pastille pastille = new Pastille(x, y, 5, Color.GREEN);
-            pastilles.add(pastille);
-            root.getChildren().add(pastille.getRepresentation());
-            gameWorld.addPastille(pastille);
+            Pellet pellet = new Pellet(x, y, 5, Color.GREEN);
+            pellets.add(pellet);
+            root.getChildren().add(pellet.getRepresentation());
+            gameWorld.addPastille(pellet);
         }
     }
 
@@ -143,10 +153,10 @@ public class Main extends Application {
             bot.makeDecision(gameWorld);
         }
 
-        // Check for collisions between player and pastilles
+        // Check for collisions between player and pellets
         checkCollisions(player);
 
-        // Check for collisions between bots and pastilles
+        // Check for collisions between bots and pellets
         for (AIPlayer bot : bots) {
             checkCollisions(bot);
             checkCollisionsAI(player);
@@ -175,6 +185,10 @@ public class Main extends Application {
         scoreBox.getChildren().clear();
         Leaderboard leaderboard = new Leaderboard(gameWorld);
         List<Player> topPlayers = leaderboard.getLeaderboard(10);
+        for (Player p : topPlayers) {
+            Label label = new Label(p.getName()+"     |     "+(int)p.getMass());
+            scoreBox.getChildren().add(label);
+        }
     }
 
     private void checkCollisionsAI(Player currentPlayer) {
@@ -195,17 +209,17 @@ public class Main extends Application {
     }
 
     private void checkCollisions(Player player) {
-        List<Pastille> eatenPastilles = new ArrayList<>();
-        for (Pastille pastille : pastilles) {
-            if (player.getRepresentation().getBoundsInParent().intersects(pastille.getRepresentation().getBoundsInParent())) {
-                eatenPastilles.add(pastille);
-                player.setMass(player.getMass() + 1); // Increase player mass when eating a pastille
+        List<Pellet> eatenPellets = new ArrayList<>();
+        for (Pellet pellet : pellets) {
+            if (player.getRepresentation().getBoundsInParent().intersects(pellet.getRepresentation().getBoundsInParent())) {
+                eatenPellets.add(pellet);
+                player.setMass(player.getMass() + 1); // Increase player mass when eating a pellet
             }
         }
-        pastilles.removeAll(eatenPastilles);
-        for (Pastille pastille : eatenPastilles) {
+        pellets.removeAll(eatenPellets);
+        for (Pellet pellet : eatenPellets) {
             if (player.getRepresentation().getParent() instanceof Pane parent) {
-                parent.getChildren().remove(pastille.getRepresentation());
+                parent.getChildren().remove(pellet.getRepresentation());
             }
         }
     }
