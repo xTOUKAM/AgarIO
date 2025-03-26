@@ -11,6 +11,6 @@ public class RandomMovementStrategy implements AIDecisionStrategy {
     public void makeDecision(AIPlayer aiPlayer, GameWorld gameWorld) {
         double directionX = random.nextDouble() * 2 - 1;
         double directionY = random.nextDouble() * 2 - 1;
-        aiPlayer.move(aiPlayer.getX() + directionX, aiPlayer.getY() + directionY);
+        gameWorld.move(aiPlayer.getX() + directionX, aiPlayer.getY() + directionY, aiPlayer);
     }
 }

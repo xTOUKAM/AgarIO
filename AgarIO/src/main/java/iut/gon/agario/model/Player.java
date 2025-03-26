@@ -7,7 +7,7 @@ import javafx.beans.property.SimpleDoubleProperty;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 
-public class Player {
+public class Player implements Entity {
     private static int idCounter = 0;
     private final int id;
     private final Circle representation;
@@ -17,16 +17,16 @@ public class Player {
     private double speed;
     private final Color color;
     private double directionX, directionY;
+    private String name;
+
+    public String getName() {
+        return name;
+    }
+
     private long lastSpeedBoostTime = 0;
-    private static final double MIN_SPEED = 0;
     private static final double INITIAL_MAX_SPEED = 100.0;
     private static final double COEFFICIENT_ATTENUATION = 0.3;
-    private static final double ABSORPTION_RATIO = 1.33;
-    private static final double MERGE_OVERLAP = 0.33;
-    private static final double DECAY_FACTOR = 5.0;
-    private static final long SPEED_DECAY_DURATION = 1300;
-    private static final long CONTROL_RADIUS = 1000;
-
+    private static final long MINIMUM_SPLIT = 40;
 
     public Player(double startX, double startY, double startMass, Color color) {
         this.id = idCounter++;
@@ -49,10 +49,11 @@ public class Player {
         this.representation.radiusProperty().bind(radiusBinding);
     }
 
-    private double calculateRadius(double mass) {
+    @Override
+    public double calculateRadius(double mass) {
         return 10 * Math.sqrt(mass);
     }
-
+    @Override
     public int getId() {
         return id;
     }
@@ -61,6 +62,7 @@ public class Player {
         return representation;
     }
 
+    @Override
     public double getX() {
         return x.get();
     }
@@ -73,6 +75,7 @@ public class Player {
         return x;
     }
 
+    @Override
     public double getY() {
         return y.get();
     }
@@ -81,10 +84,38 @@ public class Player {
         this.y.set(y);
     }
 
+    public double getDirectionX() {
+        return this.directionX;
+    }
+    public void setDirectionX(double x) {
+        this.directionX = x;
+    }
+
+    public double getDirectionY() {
+        return this.directionY;
+    }
+    public void setDirectionY(double y) {
+        this.directionY = y;
+    }
+
+    public double getSpeed() {
+        return this.speed;
+    }
+    public void setSpeed(double speed) {
+        this.speed = speed;
+    }
+    public long GetLastSpeedBoostTime(){
+        return this.lastSpeedBoostTime;
+    }
+    public void SetLastSpeedBoostTime(long last){
+        this.lastSpeedBoostTime = last;
+    }
+
     public DoubleProperty yProperty() {
         return y;
     }
 
+    @Override
     public double getMass() {
         return mass.get();
     }
@@ -93,7 +124,7 @@ public class Player {
         this.mass.set(mass);
     }
 
-    public Color getColor(){
+    public Color getColor() {
         return this.color;
     }
 
@@ -101,69 +132,35 @@ public class Player {
         return mass;
     }
 
-    public void move(double cursorX, double cursorY){
-        double dx = cursorX - this.getX();
-        double dy = cursorY - this.getY();
-        double distance = Math.sqrt(dx * dx + dy * dy);
-
-        if(distance == 0) {
-            this.speed = MIN_SPEED;
-        }else{
-            double maxSpeed = currentMaxSpeed() / Math.sqrt(this.getMass());
-            directionX = dx / distance;
-            directionY = dy / distance;
-            if(this.speed > currentMaxSpeed()){
-                long elapsedTime = System.currentTimeMillis() - lastSpeedBoostTime;
-                if (elapsedTime >= SPEED_DECAY_DURATION) {
-                    this.speed = maxSpeed;
-                } else {
-                    double decayFactor = Math.exp(-DECAY_FACTOR * elapsedTime / SPEED_DECAY_DURATION);
-                    this.speed = maxSpeed + (this.speed - maxSpeed) * decayFactor;
-                }
-            }else {
-                this.speed = maxSpeed * Math.min(1.0, distance / CONTROL_RADIUS);
-            }
-        }
-        setX(this.getX() + directionX * speed);
-        setY(this.getY() + directionY * speed);
+    public double currentMaxSpeed() {
+        return INITIAL_MAX_SPEED * Math.pow((10 / this.getMass()), COEFFICIENT_ATTENUATION);
     }
 
-    public double overlap(Player other){
-        double distance = Math.sqrt(Math.pow(this.getX() - other.getX(), 2) + Math.pow(this.getY() - other.getY(), 2));
-        double combinedRadius = this.calculateRadius(this.getMass()) + other.calculateRadius(this.getMass());
-        return (combinedRadius - distance) / combinedRadius;
+    public void setMaxSpeed(double val){
+        this.speed = val;
+    }
+    @Override
+    public double getWidth() {
+        return this.representation.getRadius() * 2;
     }
 
-    public boolean canAbsorb(Player other){
-        if((this.id == other.getId()) && (overlap(other) >= MERGE_OVERLAP)) {
-            return true;
-        }
-
-        return (this.getMass() >= other.getMass() * ABSORPTION_RATIO) && (overlap(other) >= MERGE_OVERLAP);
-    }
-
-    public void absorb(Player other){
-        if(canAbsorb(other)){
-            this.setMass(this.getMass() + other.getMass());
-        }
+    @Override
+    public double getHeight() {
+        return this.representation.getRadius() * 2;
     }
 
     public Player split() {
-        if (this.getMass() < 20) return null;
+        if (this.getMass() < MINIMUM_SPLIT) return null;
 
         double newMass = this.getMass() / 2;
         this.setMass(newMass);
         Player newCell = new Player(this.getX(), this.getY(), newMass, this.getColor());
 
-        newCell.setX(this.getX() + directionX * 10);
-        newCell.setY(this.getY() + directionY * 10);
-        newCell.speed = this.speed * 3;
-        lastSpeedBoostTime = System.currentTimeMillis();
+        newCell.setX(this.getX() + this.getDirectionX() * 10);
+        newCell.setY(this.getY() + this.getDirectionY() * 10);
+        newCell.setSpeed(this.getSpeed() * 3);
+        this.SetLastSpeedBoostTime(System.currentTimeMillis());
 
         return newCell;
-    }
-
-    public double currentMaxSpeed(){
-        return INITIAL_MAX_SPEED * Math.pow((10 / this.getMass()), COEFFICIENT_ATTENUATION);
     }
 }
