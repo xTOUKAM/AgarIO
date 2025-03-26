@@ -41,6 +41,12 @@ public class Main extends Application {
 
     @Override
     public void start(Stage primaryStage) {
+        //will be used with quadtree
+        /*GameWorld gameWorld = new GameWorld(800, 600);
+        LocalGameController gameController = new LocalGameController(gameWorld);
+        LocalGameView gameView = new LocalGameView(gameWorld, gameController);
+        Scene scene = new Scene(gameView.getRootPane(), 800, 600);*/
+
         Pane root = new Pane();
         Scene scene = new Scene(root, WIDTH, HEIGHT);
         primaryStage.setTitle("Agario Game");

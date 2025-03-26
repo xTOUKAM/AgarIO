@@ -58,7 +58,7 @@ public class GameWorld {
         return new CopyOnWriteArrayList<>(players);
     }
 
-    public List<Pellet> getPastilles() {
+    public List<Pellet> getPellets() {
         return new CopyOnWriteArrayList<>(pellets);
     }
 
@@ -97,6 +97,10 @@ public class GameWorld {
 
     public double getHeight() {
         return height.get();
+    }
+
+    public QuadTree getQuadTree() {
+        return quadTree;
     }
 
     public void deleteEntity(Entity entity){
@@ -174,6 +178,4 @@ public class GameWorld {
                 .limit(topN)
                 .collect(Collectors.toList());
     }
-
-
 }

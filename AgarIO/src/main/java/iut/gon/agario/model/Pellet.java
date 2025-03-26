@@ -13,7 +13,6 @@ public class Pellet implements Entity {
     private final DoubleProperty y;
     private final DoubleProperty radius;
     private static final double PELLET_MASS = 5;
-
     public Pellet(double startX, double startY, double startRadius, Color color) {
         this.id = idCounter++;
         this.x = new SimpleDoubleProperty(startX);
