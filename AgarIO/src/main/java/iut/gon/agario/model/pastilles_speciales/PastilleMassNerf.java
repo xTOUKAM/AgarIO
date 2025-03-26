@@ -1,5 +1,6 @@
 package iut.gon.agario.model.pastilles_speciales;
 
+import iut.gon.agario.model.Cell;
 import iut.gon.agario.model.Pastille;
 import iut.gon.agario.model.Player;
 import javafx.scene.paint.Color;
@@ -13,6 +14,8 @@ public class PastilleMassNerf extends PastilleSpeciale {
 
     @Override
     public void applyEffect() {
-        player.setMass(player.getMass()*0.66);
+        for(Cell cell : player.getCells()) {
+            cell.setMass(player.getMass() * 0.66);
+        }
     }
 }
