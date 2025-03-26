@@ -70,7 +70,6 @@ public class Main extends Application {
             // Ajouter des joueurs
             PlayerFactory playerFactory = new PlayerFactory(gameWorld);
             Player player = (Player) playerFactory.factory();
-            player.name = "C MOI WSH";  // Vous pouvez modifier le nom du joueur
             gameWorld.addPlayer(player);
 
             // Ajouter des bots AI
