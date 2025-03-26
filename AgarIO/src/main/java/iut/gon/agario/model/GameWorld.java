@@ -7,8 +7,10 @@ import javafx.beans.property.SimpleDoubleProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
@@ -185,5 +187,29 @@ public class GameWorld {
                 .sorted((p1, p2) -> Double.compare(p2.getMass(), p1.getMass()))
                 .limit(topN)
                 .collect(Collectors.toList());
+    }
+
+    public void checkBotCollisions(List<AIPlayer> bots) {
+        List<AIPlayer> eatenBots = new ArrayList<>();
+
+        // Vérifier les collisions entre bots
+        for (AIPlayer bot : bots) {
+            for (AIPlayer otherBot : bots) {
+                if (bot != otherBot && bot.getRepresentation().getBoundsInParent().intersects(otherBot.getRepresentation().getBoundsInParent())) {
+                    if (bot.getMass() > otherBot.getMass() * 1.33) {
+                        eatenBots.add(otherBot);
+                        bot.setMass(bot.getMass() + otherBot.getMass());  // Le bot mange l'autre bot
+                    }
+                }
+            }
+        }
+
+        // Retirer les bots mangés de la liste des bots et de la scène
+        bots.removeAll(eatenBots);
+        for (AIPlayer eatenBot : eatenBots) {
+            if (eatenBot.getRepresentation().getParent() instanceof Pane parent) {
+                parent.getChildren().remove(eatenBot.getRepresentation());
+            }
+        }
     }
 }
