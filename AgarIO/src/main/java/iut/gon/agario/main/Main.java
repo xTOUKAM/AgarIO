@@ -1,22 +1,16 @@
 package iut.gon.agario.main;
 
+import iut.gon.agario.controller.LocalGameController;
 import iut.gon.agario.model.*;
 import iut.gon.agario.model.AI.AIPlayer;
 import iut.gon.agario.model.AI.EatFoodStrategy;
-import iut.gon.agario.model.AI.RandomMovementStrategy;
-import iut.gon.agario.model.factory.AIFactory;
-import iut.gon.agario.model.factory.PelletFactory;
-import iut.gon.agario.model.factory.PlayerFactory;
+import iut.gon.agario.view.LocalGameView;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Application;
-import javafx.beans.binding.Bindings;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.Pane;
@@ -28,7 +22,8 @@ import javafx.util.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-import java.util.concurrent.CopyOnWriteArrayList;
+
+import static javafx.application.Application.launch;
 
 public class Main extends Application {
 
@@ -38,8 +33,8 @@ public class Main extends Application {
     public static final int HEIGHT = 720;
     private static final int NUM_PASTILLES = 100;
     private static final int NUM_BOTS = 5;
-    private List<Pellet> pellets;
-    private CopyOnWriteArrayList<AIPlayer> bots;
+    private List<Pastille> pastilles;
+    private List<AIPlayer> bots;
     private Player player;
     private GameWorld gameWorld;
     private Camera camera;
@@ -47,7 +42,6 @@ public class Main extends Application {
 
     @Override
     public void start(Stage primaryStage) {
-        System.out.println("Application started!");
         Pane root = new Pane();
         Scene scene = new Scene(root, WIDTH, HEIGHT);
         primaryStage.setTitle("Agario Game");
@@ -58,15 +52,15 @@ public class Main extends Application {
         gameWorld = new GameWorld(WIDTH, HEIGHT);
 
         // Initialize game elements
-        pellets = new ArrayList<>();
-        bots = new CopyOnWriteArrayList<>();
+        pastilles = new ArrayList<>();
+        bots = new ArrayList<>();
 
         // Create game canvas
         gameCanvas = new Canvas(WIDTH, HEIGHT);
         root.getChildren().add(gameCanvas);
 
-        // Spawn pellets
-        spawnPellets(root);
+        // Spawn pastilles
+        spawnPastilles(root);
 
         // Spawn bots
         spawnBots(root);
@@ -107,28 +101,29 @@ public class Main extends Application {
         });
 
         // Game loop
-        Timeline timeline = new Timeline(new KeyFrame(Duration.millis(33), e -> update(miniMap, scoreBox)));
+        Timeline timeline = new Timeline(new KeyFrame(Duration.millis(20), e -> update(miniMap, scoreBox)));
         timeline.setCycleCount(Timeline.INDEFINITE);
-        timeline.play();  // Si cette ligne n'est pas présente, le jeu ne commence pas
+        timeline.play();
     }
 
-    private void spawnPellets(Pane root) {
+    private void spawnPastilles(Pane root) {
         Random rand = new Random();
         for (int i = 0; i < NUM_PASTILLES; i++) {
-            PelletFactory pelletFactory = new PelletFactory(gameWorld);
-            Pellet pellet = (Pellet) pelletFactory.factory();
-            pellets.add(pellet);
-            root.getChildren().add(pellet.getRepresentation());
-            gameWorld.addPellet(pellet);
+            double x = rand.nextDouble() * WIDTH;
+            double y = rand.nextDouble() * HEIGHT;
+            Pastille pastille = new Pastille(x, y, 5, Color.GREEN);
+            pastilles.add(pastille);
+            root.getChildren().add(pastille.getRepresentation());
+            gameWorld.addPastille(pastille);
         }
     }
 
     private void spawnBots(Pane root) {
         Random rand = new Random();
         for (int i = 0; i < NUM_BOTS; i++) {
-            AIFactory aiFactory = new AIFactory(gameWorld);
-            AIPlayer bot = (AIPlayer) aiFactory.factory();
-            bot.name = Names.getRandomName().name();
+            double x = rand.nextDouble() * WIDTH;
+            double y = rand.nextDouble() * HEIGHT;
+            AIPlayer bot = new AIPlayer(x, y, 20, Color.RED);
             bot.setStrategy(new EatFoodStrategy());
             bots.add(bot);
             root.getChildren().add(bot.getRepresentation());
@@ -137,29 +132,28 @@ public class Main extends Application {
     }
 
     private void spawnPlayer(Pane root) {
-        PlayerFactory playerFactory = new PlayerFactory(gameWorld);
-        Player p = (Player) playerFactory.factory();
-        player = p;
-        p.name = "C MOI WSH";
-        root.getChildren().add(p.getRepresentation());
-        gameWorld.addPlayer(p);
+        player = new Player(WIDTH / 2, HEIGHT / 2, 30, Color.BLUE);
+        root.getChildren().add(player.getRepresentation());
+        gameWorld.addPlayer(player);
     }
 
     private void update(Canvas miniMap, VBox scoreBox) {
-        // Update bots movements - chaque bot prend une nouvelle décision
+        // Update bots movements
         for (AIPlayer bot : bots) {
-            bot.makeDecision(gameWorld);  // Appel à la logique de déplacement des bots
+            bot.makeDecision(gameWorld);
         }
 
-        // Mettre à jour le monde du jeu
-        gameWorld.update();  // Met à jour les collisions et la logique de jeu
+        // Check for collisions between player and pastilles
+        checkCollisions(player);
 
-        checkCollisions(player); // Vérifie les collisions entre le joueur et les pastilles
-        checkCollisionsAI(player); // Vérifie les collisions entre le joueur et les bots
-        gameWorld.checkBotCollisions(bots);  // Vérifier les collisions entre bots
+        // Check for collisions between bots and pastilles
+        for (AIPlayer bot : bots) {
+            checkCollisions(bot);
+            checkCollisionsAI(player);
+        }
 
-        // Redessiner la scène (y compris les positions des bots et du joueur)
-        render(miniMap, scoreBox);  // Redessine le jeu et met à jour les positions à chaque tick de la boucle
+        camera.update();
+        render(miniMap, scoreBox);
     }
 
     private void render(Canvas miniMap, VBox scoreBox) {
@@ -172,61 +166,46 @@ public class Main extends Application {
             miniMapGC.fillOval(player.getX() / 4, player.getY() / 4, 5, 5);
         }
 
-        // Clear the game canvas and redraw the game world
+        // Draw game world (centered on player)
         GraphicsContext gameGC = gameCanvas.getGraphicsContext2D();
         gameGC.clearRect(0, 0, gameCanvas.getWidth(), gameCanvas.getHeight());
-
-        // Test simple : dessiner un cercle rouge pour vérifier que le rendu fonctionne
-        gameGC.setFill(Color.RED);
-        gameGC.fillOval(100, 100, 50, 50);  // Test : dessine un cercle rouge à la position (100, 100)
-
-        // Redraw all players and bots (on the main game canvas)
-        for (Player player : gameWorld.getPlayers()) {
-            gameGC.setFill(player.getColor());
-            gameGC.fillOval(player.getX() - player.getMass() / 2, player.getY() - player.getMass() / 2, player.getMass(), player.getMass());
-        }
+        gameWorld.draw(gameGC, camera);
 
         // Update score box
         scoreBox.getChildren().clear();
         Leaderboard leaderboard = new Leaderboard(gameWorld);
         List<Player> topPlayers = leaderboard.getLeaderboard(10);
-        for (Player p : topPlayers) {
-            Label label = new Label(p.getName()+"     |     "+(int)p.getMass());
-            scoreBox.getChildren().add(label);
-        }
     }
 
     private void checkCollisionsAI(Player currentPlayer) {
         List<AIPlayer> eatenAI = new ArrayList<>();
-        for (AIPlayer aiPlayer : bots) {
-            if (currentPlayer.getRepresentation().getBoundsInParent().intersects(aiPlayer.getRepresentation().getBoundsInParent())) {
+        for(AIPlayer aiPlayer : bots) {
+            if(currentPlayer.getRepresentation().getBoundsInParent().intersects(aiPlayer.getRepresentation().getBoundsInParent())) {
                 eatenAI.add(aiPlayer);
-                currentPlayer.setMass(currentPlayer.getMass() + aiPlayer.getMass()); // Augmenter la masse du joueur
+                currentPlayer.setMass(currentPlayer.getMass() + aiPlayer.getMass());
             }
         }
 
-        // Enlever les bots mangés
         bots.removeAll(eatenAI);
-        for (AIPlayer aiPlayer : eatenAI) {
-            if (currentPlayer.getRepresentation().getParent() instanceof Pane parent) {
-                parent.getChildren().remove(aiPlayer.getRepresentation());  // Supprimer le bot de la scène
+        for(AIPlayer aiPlayer : eatenAI) {
+            if(currentPlayer.getRepresentation().getParent() instanceof Pane parent) {
+                parent.getChildren().remove(aiPlayer.getRepresentation());
             }
         }
     }
 
     private void checkCollisions(Player player) {
-        List<Pellet> eatenPellets = new ArrayList<>();
-        for (Pellet pellet : pellets) {
-            if (player.getRepresentation().getBoundsInParent().intersects(pellet.getRepresentation().getBoundsInParent())) {
-                eatenPellets.add(pellet);
-                player.setMass(player.getMass() + 1); // Augmente la masse du joueur lorsqu'il mange une pastille
+        List<Pastille> eatenPastilles = new ArrayList<>();
+        for (Pastille pastille : pastilles) {
+            if (player.getRepresentation().getBoundsInParent().intersects(pastille.getRepresentation().getBoundsInParent())) {
+                eatenPastilles.add(pastille);
+                player.setMass(player.getMass() + 1); // Increase player mass when eating a pastille
             }
         }
-        // Enlever les pastilles mangées
-        pellets.removeAll(eatenPellets);
-        for (Pellet pellet : eatenPellets) {
+        pastilles.removeAll(eatenPastilles);
+        for (Pastille pastille : eatenPastilles) {
             if (player.getRepresentation().getParent() instanceof Pane parent) {
-                parent.getChildren().remove(pellet.getRepresentation());  // Supprimer la pastille de la scène
+                parent.getChildren().remove(pastille.getRepresentation());
             }
         }
     }

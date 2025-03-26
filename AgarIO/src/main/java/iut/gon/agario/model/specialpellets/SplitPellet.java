@@ -11,6 +11,6 @@ public class SplitPellet extends SpecialPellet {
 
     @Override
     public void applyEffect() {
-        player.split();
+        //player.split();
     }
 }
