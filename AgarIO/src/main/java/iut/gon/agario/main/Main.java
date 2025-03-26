@@ -107,7 +107,7 @@ public class Main extends Application {
 
         scene.setOnKeyPressed(e ->{
             if (e.getCode() == KeyCode.SPACE) {
-                compositePlayer.split();
+                compositePlayer.split(x,y);
                 List<Player> newPlayers = compositePlayer.getPlayers();
                 for (Player player : newPlayers) {
                     root.getChildren().add(player.getRepresentation());

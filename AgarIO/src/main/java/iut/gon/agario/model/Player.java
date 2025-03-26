@@ -20,7 +20,7 @@ public class Player implements Entity {
     private long lastSpeedBoostTime = 0;
     private static final double INITIAL_MAX_SPEED = 100.0;
     private static final double COEFFICIENT_ATTENUATION = 0.3;
-    private static final long MINIMUM_SPLIT = 40;
+
 
     public Player(double startX, double startY, double startMass, Color color) {
         this.id = idCounter++;
@@ -143,18 +143,37 @@ public class Player implements Entity {
         return this.representation.getRadius() * 2;
     }
 
-    public Player split() {
-        if (this.getMass() < MINIMUM_SPLIT) return null;
+    public Player split(double cursorX, double cursorY) {
+        if (this.getMass() >= 2) {
+            double newMass = this.getMass() / 2;
+            this.setMass(newMass);
 
-        double newMass = this.getMass() / 2;
-        this.setMass(newMass);
-        Player newCell = new Player(this.getX(), this.getY(), newMass, this.getColor());
+            Player newCell = new Player(this.getX(), this.getY(), newMass, this.color);
+            newCell.bindProperties();
 
-        newCell.setX(this.getX() + this.getDirectionX() * 10);
-        newCell.setY(this.getY() + this.getDirectionY() * 10);
-        newCell.setSpeed(this.getSpeed() * 3);
-        this.SetLastSpeedBoostTime(System.currentTimeMillis());
+            double dx = cursorX - this.getX();
+            double dy = cursorY - this.getY();
+            double distance = Math.sqrt(dx * dx + dy * dy);
 
-        return newCell;
+            if (distance == 0) {
+                dx = 1;
+                dy = 0;
+            } else {
+                dx /= distance;
+                dy /= distance;
+            }
+
+            double baseSpeed = currentMaxSpeed() / Math.sqrt(newMass);
+            newCell.setSpeed(baseSpeed * 3);
+            newCell.setDirectionX(dx);
+            newCell.setDirectionY(dy);
+
+            newCell.setX(this.getX() + dx * 200);
+            newCell.setY(this.getY() + dy * 200);
+
+            return newCell;
+        }
+        return null;
     }
+
 }

@@ -11,6 +11,6 @@ public class PastilleSplit extends PastilleSpeciale{
 
     @Override
     public void applyEffect() {
-        player.split();
+        //player.split();
     }
 }

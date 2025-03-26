@@ -171,9 +171,22 @@ public class GameWorld {
 
     public void draw(GraphicsContext gc, Camera camera) {
         gc.clearRect(0, 0, getWidth(), getHeight());
-        gc.setFill(Color.GREEN);
         for (Entity entity : entities) {
             if (camera.getViewBounds().contains(entity.getX(), entity.getY())) {
+                // Vérifier si l'entité est un CompositePlayer
+                if (entity instanceof CompositePlayer compositePlayer) {
+                    // Récupérer la couleur du CompositePlayer
+                    Color playerColor = compositePlayer.getColor(); // Suppose que getColor() retourne la couleur du CompositePlayer
+
+                    // Appliquer la couleur à l'objet GraphicsContext
+                    gc.setFill(playerColor);
+                } else if (entity instanceof Player player) {
+                    // Pour les autres entités Player (pas CompositePlayer)
+                    Color playerColor = player.getColor();  // Récupérer la couleur du Player
+                    gc.setFill(playerColor);
+                }
+
+                // Dessiner l'entité (cercle ou autre forme selon les propriétés de l'entité)
                 gc.fillOval(entity.getX(), entity.getY(), entity.getWidth(), entity.getHeight());
             }
         }
