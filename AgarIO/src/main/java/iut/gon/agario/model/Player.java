@@ -26,7 +26,7 @@ public class Player implements Entity {
             if (cell.getMass() > 20) {
                 double newMass = cell.getMass() / 2;
                 cell.setMass(newMass);
-                Cell newCell1 = new Cell(idCounter++, cell.getX(), cell.getY(), newMass, color, this);
+                Cell newCell1 = new Cell(idCounter++, cell.getX()+50, cell.getY()+50, newMass, color, this);
                 newCell1.GiveSpeedBoost();
                 if(cell.getRepresentation().getParent() instanceof Pane parent) {
                    parent.getChildren().add(newCell1.getRepresentation());

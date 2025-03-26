@@ -119,7 +119,8 @@ public class Main extends Application {
         // Game loop
         Timeline timeline = new Timeline(new KeyFrame(Duration.millis(33), e -> {
             update(miniMap, scoreBox);
-            if(player != null)gameWorld.move(x,y,player);}));
+            if(player != null)gameWorld.move(x,y,player);
+        }));
         timeline.setCycleCount(Timeline.INDEFINITE);
         timeline.play();
     }
@@ -160,16 +161,22 @@ public class Main extends Application {
     private void update(Canvas miniMap, VBox scoreBox) {
         // Update bots movements
         for (AIPlayer bot : bots) {
-            bot.makeDecision(gameWorld);
+            //bot.makeDecision(gameWorld);
         }
 
         // Check for collisions between player and pastilles
-        checkCollisions(player);
+        for (Cell cell : player.getCells()){
+            checkCollisions(cell);
+        }
 
         // Check for collisions between bots and pastilles
         for (AIPlayer bot : bots) {
-            checkCollisions(bot);
-            checkCollisionsAI(player);
+            for(Cell cell : bot.getCells()) {
+                checkCollisions(cell);
+                for(Cell playerCell : player.getCells()) {
+                    checkCollisionsAI(playerCell);
+                }
+            }
         }
 
         camera.update();
@@ -197,12 +204,19 @@ public class Main extends Application {
         List<Player> topPlayers = leaderboard.getLeaderboard(10);
     }
 
-    private void checkCollisionsAI(Player currentPlayer) {
+    private void checkCollisionsAI(Cell playerCell) {
         List<AIPlayer> eatenAI = new ArrayList<>();
         for (AIPlayer aiPlayer : bots) {
             for (Cell aiCell : aiPlayer.getCells()) {
-                for (Cell playerCell : currentPlayer.getCells()) {
-                    if (playerCell.getRepresentation().getBoundsInParent().intersects(aiCell.getRepresentation().getBoundsInParent())) {
+                if(gameWorld.canAbsorb(aiCell,playerCell)){
+                    eatenAI.add(aiPlayer);
+                    gameWorld.absorb(aiCell,playerCell);
+                }else if(gameWorld.canAbsorb(playerCell,aiCell)){
+                    gameWorld.absorb(playerCell,aiCell);
+                }
+
+
+                    /*if (playerCell.getRepresentation().getBoundsInParent().intersects(aiCell.getRepresentation().getBoundsInParent())) {
                         if (gameWorld.canAbsorb(aiCell, playerCell)) {
                             gameWorld.absorb(aiCell, playerCell);
                             eatenAI.add(aiPlayer);
@@ -213,38 +227,33 @@ public class Main extends Application {
                                 pane.getChildren().remove(playerCell.getRepresentation());
                             }
                         }
-                    }
-                }
+                    }*/
             }
         }
 
         bots.removeAll(eatenAI);
         for (AIPlayer aiPlayer : eatenAI) {
             for (Cell aiCell : aiPlayer.getCells()) {
-                if (currentPlayer.getCells().get(0).getRepresentation().getParent() instanceof Pane parent) {
+                if (playerCell.getRepresentation().getParent() instanceof Pane parent) {
                     parent.getChildren().remove(aiCell.getRepresentation());
                 }
             }
         }
     }
 
-    private void checkCollisions(Player player) {
+    private void checkCollisions(Cell cell) {
         List<Pastille> eatenPastilles = new ArrayList<>();
         for (Pastille pastille : pastilles) {
-            for (Cell playerCell : player.getCells()) {  // Parcours des cellules du player
-                if (playerCell.getRepresentation().getBoundsInParent().intersects(pastille.getRepresentation().getBoundsInParent())) {
+                if (cell.getRepresentation().getBoundsInParent().intersects(pastille.getRepresentation().getBoundsInParent())) {
                     eatenPastilles.add(pastille);
-                    playerCell.setMass(player.getMass() + 1);  // Augmente la masse lorsqu'une pastille est mangée
+                    cell.setMass(cell.getMass() + 1);
                 }
-            }
         }
         pastilles.removeAll(eatenPastilles);
         for (Pastille pastille : eatenPastilles) {
-            for (Cell playerCell : player.getCells()) {  // Supprime uniquement les pastilles liées à une cellule spécifique
-                if (playerCell.getRepresentation().getParent() instanceof Pane parent) {
+                if (cell.getRepresentation().getParent() instanceof Pane parent) {
                     parent.getChildren().remove(pastille.getRepresentation());
                 }
-            }
         }
     }
 

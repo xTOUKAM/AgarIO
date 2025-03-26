@@ -139,7 +139,7 @@ public class GameWorld {
         if (canAbsorb(other, cell)) {
             cell.setMass(cell.getMass() + other.getMass());
             if(cell.getRepresentation().getParent() instanceof Pane parent) {
-                parent.getChildren().remove(cell.getRepresentation());
+                parent.getChildren().remove(other.getRepresentation());
             }
             deleteEntity(other,other.getPlayer());
         }
