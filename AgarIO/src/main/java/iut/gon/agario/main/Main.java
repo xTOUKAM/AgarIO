@@ -11,6 +11,7 @@ import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.Pane;
@@ -175,6 +176,10 @@ public class Main extends Application {
         scoreBox.getChildren().clear();
         Leaderboard leaderboard = new Leaderboard(gameWorld);
         List<Player> topPlayers = leaderboard.getLeaderboard(10);
+        for (Player p : topPlayers) {
+            Label label = new Label(p.getName()+"     |     "+(int)p.getMass());
+            scoreBox.getChildren().add(label);
+        }
     }
 
     private void checkCollisionsAI(Player currentPlayer) {
