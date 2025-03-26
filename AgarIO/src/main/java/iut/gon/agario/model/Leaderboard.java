@@ -1,5 +1,6 @@
 package iut.gon.agario.model;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -10,6 +11,7 @@ public class Leaderboard {
 
     public Leaderboard(GameWorld game) {
         this.game = game;
+        sortedPlayers = new ArrayList<Player>();
     }
 
     public void topPlayers(int topN) {
