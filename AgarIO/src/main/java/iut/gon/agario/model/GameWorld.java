@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 public class GameWorld {
     private final DoubleProperty width;
     private final DoubleProperty height;
-    private final ObservableList<Player> players;
+    private final ObservableList<Entity> entities;
     private final ObservableList<Pastille> pastilles;
     private final QuadTree quadTree;
 
@@ -30,19 +30,19 @@ public class GameWorld {
     public GameWorld(double width, double height) {
         this.width = new SimpleDoubleProperty(width);
         this.height = new SimpleDoubleProperty(height);
-        this.players = FXCollections.observableArrayList();
+        this.entities = FXCollections.observableArrayList();
         this.pastilles = FXCollections.observableArrayList();
         this.quadTree = new QuadTree(0, new Boundary(0, 0, width, height));
     }
 
-    public void addPlayer(Player player) {
-        players.add(player);
-        quadTree.insert((Entity) player);
+    public void addEntity(Entity entity) {
+        entities.add(entity);
+        quadTree.insert(entity);
     }
 
-    public void removePlayer(Player player) {
-        players.remove(player);
-        quadTree.remove((Entity) player);
+    public void removeEntity(Entity entity) {
+        entities.remove(entity);
+        quadTree.remove(entity);
     }
 
     public void addPastille(Pastille pastille) {
@@ -55,34 +55,52 @@ public class GameWorld {
         quadTree.remove((Entity) pastille);
     }
 
-    public List<Player> getPlayers() {
-        return new CopyOnWriteArrayList<>(players);
+    public List<Entity> getEntities() {
+        return new CopyOnWriteArrayList<>(entities);
     }
 
     public List<Pastille> getPastilles() {
         return new CopyOnWriteArrayList<>(pastilles);
     }
 
+    public void addPlayer(Player player) {
+        addEntity(player);
+    }
+
+    public List<Player> getPlayers() {
+        return entities.stream()
+                .filter(entity -> entity instanceof Player)
+                .map(entity -> (Player) entity)
+                .collect(Collectors.toList());
+    }
+
     public void update() {
-        for (Player player : players) {
-            List<Entity> nearbyEntities = quadTree.retrieve((Entity) player);
-            for (Entity entity : nearbyEntities) {
-                if (entity instanceof Pastille pastille) {
-                    if (player.getRepresentation().getBoundsInParent().intersects(pastille.getRepresentation().getBoundsInParent())) {
-                        player.setMass(player.getMass() + pastille.getRadius());
-                        removePastille(pastille);
-                    }
-                } else if (entity instanceof Player otherPlayer) {
-                    if (player != otherPlayer && player.getRepresentation().getBoundsInParent().intersects(otherPlayer.getRepresentation().getBoundsInParent())) {
-                        if (player.getMass() >= otherPlayer.getMass() * 1.33) {
-                            player.setMass(player.getMass() + otherPlayer.getMass());
-                            removePlayer(otherPlayer);
+        for (Entity entity : entities) {
+            if (entity instanceof CompositePlayer compositePlayer) {
+                compositePlayer.update();
+            }
+            else if (entity instanceof Player player) {
+                List<Entity> nearbyEntities = quadTree.retrieve(player);
+                for (Entity other : nearbyEntities) {
+                    if (other instanceof Pastille pastille) {
+                        if (player.getRepresentation().getBoundsInParent().intersects(pastille.getRepresentation().getBoundsInParent())) {
+                            player.setMass(player.getMass() + pastille.getRadius());
+                            removePastille(pastille);
+                        }
+                    } else if (other instanceof Player otherPlayer) {
+                        if (player != otherPlayer && player.getRepresentation().getBoundsInParent().intersects(otherPlayer.getRepresentation().getBoundsInParent())) {
+                            if (player.getMass() >= otherPlayer.getMass() * 1.33) {
+                                player.setMass(player.getMass() + otherPlayer.getMass());
+                                removeEntity(otherPlayer);
+                            }
                         }
                     }
                 }
             }
         }
     }
+
+
 
     public DoubleProperty widthProperty() {
         return width;
@@ -99,78 +117,72 @@ public class GameWorld {
     public double getHeight() {
         return height.get();
     }
+    public double overlap(Entity other, Player player) {
 
-    public void deleteEntity(Entity entity){
-        if (entity instanceof Player){
-            players.remove(entity);
-            entity = null;
-        } else if (entity instanceof Pastille){
-            pastilles.remove(entity);
-            entity = null;
-            FabriquePastille fabPast = new FabriquePastille(this);
-            pastilles.add((Pastille) fabPast.fabrique());
-        }
-    }
-
-    public double overlap(Entity other, Player player){
         double distance = Math.sqrt(Math.pow(player.getX() - other.getX(), 2) + Math.pow(player.getY() - other.getY(), 2));
         double combinedRadius = player.calculateRadius(player.getMass()) + other.calculateRadius(player.getMass());
         return (combinedRadius - distance) / combinedRadius;
     }
 
-    public boolean canAbsorb(Entity other, Player player){
-        if((player.getId() == other.getId()) && (overlap(other,player) >= MERGE_OVERLAP)) {
+    public boolean canAbsorb(Entity other, Player player) {
+        if ((player.getId() == other.getId()) && (overlap(other, player) >= MERGE_OVERLAP)) {
             return true;
         }
-        return (player.getMass() >= other.getMass() * ABSORPTION_RATIO) && (overlap(other,player) >= MERGE_OVERLAP);
+        return (player.getMass() >= other.getMass() * ABSORPTION_RATIO) && (overlap(other, player) >= MERGE_OVERLAP);
     }
 
     public void absorb(Entity other, Player player) {
         if (canAbsorb(other, player)) {
             player.setMass(player.getMass() + other.getMass());
-            deleteEntity(other);
+            removeEntity(other);
         }
     }
 
-    public void move(double cursorX, double cursorY, Player player){
-        double dx = cursorX - player.getX();
-        double dy = cursorY - player.getY();
-        double distance = Math.sqrt(dx * dx + dy * dy);
+    public void move(double cursorX, double cursorY, Entity entity) {
+        if (entity instanceof CompositePlayer compositePlayer) {
+            compositePlayer.move(cursorX, cursorY);
+        } else if (entity instanceof Player player) {
+            double dx = cursorX - player.getX();
+            double dy = cursorY - player.getY();
+            double distance = Math.sqrt(dx * dx + dy * dy);
 
-        if(distance == 0) {
-            player.setSpeed(MIN_SPEED);
-        } else {
-            double maxSpeed = player.currentMaxSpeed() / Math.sqrt(player.getMass());
-            player.setDirectionX(dx / distance);
-            player.setDirectionY(dy / distance);
-            if(player.getSpeed() > player.currentMaxSpeed()){
-                long elapsedTime = System.currentTimeMillis() - player.GetLastSpeedBoostTime();
-                if (elapsedTime >= SPEED_DECAY_DURATION) {
-                    player.setSpeed(maxSpeed);
-                } else {
-                    double decayFactor = Math.exp(-DECAY_FACTOR * elapsedTime / SPEED_DECAY_DURATION);
-                    player.setSpeed(maxSpeed + (player.getSpeed() - maxSpeed) * decayFactor);
-                }
+            if (distance == 0) {
+                player.setSpeed(MIN_SPEED);
             } else {
-                player.setSpeed(maxSpeed * Math.min(1.0, distance / CONTROL_RADIUS));
+                double maxSpeed = player.currentMaxSpeed() / Math.sqrt(player.getMass());
+                player.setDirectionX(dx / distance);
+                player.setDirectionY(dy / distance);
+                if (player.getSpeed() > player.currentMaxSpeed()) {
+                    long elapsedTime = System.currentTimeMillis() - player.GetLastSpeedBoostTime();
+                    if (elapsedTime >= SPEED_DECAY_DURATION) {
+                        player.setSpeed(maxSpeed);
+                    } else {
+                        double decayFactor = Math.exp(-DECAY_FACTOR * elapsedTime / SPEED_DECAY_DURATION);
+                        player.setSpeed(maxSpeed + (player.getSpeed() - maxSpeed) * decayFactor);
+                    }
+                } else {
+                    player.setSpeed(maxSpeed * Math.min(1.0, distance / CONTROL_RADIUS));
+                }
             }
+            player.setX(player.getX() + player.getDirectionX() * player.getSpeed());
+            player.setY(player.getY() + player.getDirectionY() * player.getSpeed());
         }
-        player.setX(player.getX() + player.getDirectionX() * player.getSpeed());
-        player.setY(player.getY() + player.getDirectionY() * player.getSpeed());
     }
 
     public void draw(GraphicsContext gc, Camera camera) {
         gc.clearRect(0, 0, getWidth(), getHeight());
         gc.setFill(Color.GREEN);
-        for (Player player : players) {
-            if (camera.getViewBounds().contains(player.getX(), player.getY())) {
-                gc.fillOval(player.getX(), player.getY(), player.getWidth(), player.getHeight());
+        for (Entity entity : entities) {
+            if (camera.getViewBounds().contains(entity.getX(), entity.getY())) {
+                gc.fillOval(entity.getX(), entity.getY(), entity.getWidth(), entity.getHeight());
             }
         }
     }
 
     public List<Player> getTopPlayers(int topN) {
-        return players.stream()
+        return entities.stream()
+                .filter(e -> e instanceof Player)
+                .map(e -> (Player) e)
                 .sorted((p1, p2) -> Double.compare(p2.getMass(), p1.getMass()))
                 .limit(topN)
                 .collect(Collectors.toList());
@@ -178,3 +190,4 @@ public class GameWorld {
 
 
 }
+
