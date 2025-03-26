@@ -17,7 +17,7 @@ public class Player implements Entity {
     private double speed;
     private final Color color;
     private double directionX, directionY;
-    private String name;
+    public String name;
 
     public String getName() {
         return name;

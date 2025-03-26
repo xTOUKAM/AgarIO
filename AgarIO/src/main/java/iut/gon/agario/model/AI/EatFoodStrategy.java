@@ -1,8 +1,11 @@
 package iut.gon.agario.model.AI;
 
+import iut.gon.agario.model.Entity;
 import iut.gon.agario.model.GameWorld;
 import iut.gon.agario.model.Pellet;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 public class EatFoodStrategy implements AIDecisionStrategy{
@@ -24,5 +27,14 @@ public class EatFoodStrategy implements AIDecisionStrategy{
         if (target != null) {
             gameWorld.move(target.getX(), target.getY(), aiPlayer);
         }
+    }
+
+    public static HashMap<String, Double> eat(Entity player, Entity food){
+        double directionX = player.getX() - food.getX();
+        double directionY = player.getY() - food.getY();
+        HashMap<String, Double> coordinates = new HashMap<>();
+        coordinates.put("X", directionX);
+        coordinates.put("Y", directionY);
+        return coordinates;
     }
 }

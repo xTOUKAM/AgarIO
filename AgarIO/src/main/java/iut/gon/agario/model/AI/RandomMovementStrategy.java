@@ -5,18 +5,20 @@ import iut.gon.agario.model.GameWorld;
 import iut.gon.agario.model.Pellet;
 import iut.gon.agario.model.Player;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
 
-public class RandomMovementStrategy implements AIDecisionStrategy {
+public class RandomMovementStrategy {
     private static final Random random = new Random();
-    private double directionX = random.nextDouble() * 2 - 1;
-    private double directionY = random.nextDouble() * 2 - 1;
-    private long lastDirectionChangeTime = System.currentTimeMillis();
+    private static double directionX = random.nextDouble() * 2 - 1;
+    private static double directionY = random.nextDouble() * 2 - 1;
+    private static long lastDirectionChangeTime = System.currentTimeMillis();
     private static final long DIRECTION_CHANGE_INTERVAL = 2000 + random.nextInt(1001); // 2-3 seconds
 
-    @Override
-    public void makeDecision(AIPlayer aiPlayer, GameWorld gameWorld) {
+
+    public static void makeDecision(AIPlayer aiPlayer, GameWorld gameWorld) {
         long currentTime = System.currentTimeMillis();
 
         // Change direction periodically
@@ -31,16 +33,13 @@ public class RandomMovementStrategy implements AIDecisionStrategy {
         for (Entity entity : nearbyEntities) {
             if (entity instanceof Pellet) {
                 // Move towards the pastille
-                directionX = entity.getX() - aiPlayer.getX();
-                directionY = entity.getY() - aiPlayer.getY();
+                System.out.println("X : "+directionX+"  | Y :"+directionY);
+                HashMap<String, Double> coordinates = EatFoodStrategy.eat(aiPlayer, entity);
+                directionX = coordinates.get("X");
+                directionY = coordinates.get("Y");
+                System.out.println("comparé à : ");
+                System.out.println("X : "+directionX+"  | Y :"+directionY);
                 break;
-            } else if (entity instanceof Player otherPlayer) {
-                if (otherPlayer.getMass() > aiPlayer.getMass() * 1.33) {
-                    // Avoid larger players
-                    directionX = aiPlayer.getX() - otherPlayer.getX();
-                    directionY = aiPlayer.getY() - otherPlayer.getY();
-                    break;
-                }
             }
         }
 
@@ -49,10 +48,11 @@ public class RandomMovementStrategy implements AIDecisionStrategy {
         if (distance != 0) {
             directionX /= distance;
             directionY /= distance;
+            System.out.println("newX : "+directionX+"  newY : "+directionY
+            );
         }
 
-        double newX = aiPlayer.getX() + directionX;
-        double newY = aiPlayer.getY() + directionY;
-        gameWorld.move(newX, newY, aiPlayer);
+        gameWorld.move(directionX, directionY, aiPlayer);
+        System.out.println("on a bougé");
     }
 }

@@ -9,6 +9,9 @@ import iut.gon.agario.model.factory.PlayerFactory;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Application;
+import javafx.beans.binding.Bindings;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
@@ -24,8 +27,7 @@ import javafx.util.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-
-import static javafx.application.Application.launch;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class Main extends Application {
 
@@ -36,7 +38,7 @@ public class Main extends Application {
     private static final int NUM_PELLETS = 100;
     private static final int NUM_BOTS = 5;
     private List<Pellet> pellets;
-    private List<AIPlayer> bots;
+    private CopyOnWriteArrayList<AIPlayer> bots;
     private Player player;
     private GameWorld gameWorld;
     private Camera camera;
@@ -61,7 +63,7 @@ public class Main extends Application {
 
         // Initialize game elements
         pellets = new ArrayList<>();
-        bots = new ArrayList<>();
+        bots = new CopyOnWriteArrayList<>();
 
         // Create game canvas
         gameCanvas = new Canvas(WIDTH, HEIGHT);
@@ -130,7 +132,8 @@ public class Main extends Application {
         for (int i = 0; i < NUM_BOTS; i++) {
             AIFactory aiFactory = new AIFactory(gameWorld);
             AIPlayer bot = (AIPlayer) aiFactory.factory();
-            bot.setStrategy(new EatFoodStrategy());
+            //bot.setStrategy(new EatFoodStrategy());
+            bot.name = Names.getRandomName().name();
             bots.add(bot);
             root.getChildren().add(bot.getRepresentation());
             gameWorld.addPlayer(bot);
@@ -141,6 +144,7 @@ public class Main extends Application {
         PlayerFactory playerFactory = new PlayerFactory(gameWorld);
         Player p = (Player) playerFactory.factory();
         player = p;
+        p.name = "C MOI WSH";
         root.getChildren().add(player.getRepresentation());
         gameWorld.addPlayer(player);
     }
@@ -183,10 +187,14 @@ public class Main extends Application {
         scoreBox.getChildren().clear();
         Leaderboard leaderboard = new Leaderboard(gameWorld);
         List<Player> topPlayers = leaderboard.getLeaderboard(10);
+
+        ObservableList<Label> observableList = FXCollections.observableArrayList();
         for (Player p : topPlayers) {
             Label label = new Label(p.getName()+"     |     "+(int)p.getMass());
-            scoreBox.getChildren().add(label);
+            observableList.add(label);
         }
+        Bindings.bindContent(scoreBox.getChildren(), observableList);
+
     }
 
     private void checkCollisionsAI(Player currentPlayer) {

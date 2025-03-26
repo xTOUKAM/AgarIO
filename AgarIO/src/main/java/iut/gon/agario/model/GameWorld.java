@@ -143,17 +143,17 @@ public class GameWorld {
         }
     }
 
-    public void move(double cursorX, double cursorY, Player player){
-        double dx = cursorX - player.getX();
-        double dy = cursorY - player.getY();
-        double distance = Math.sqrt(dx * dx + dy * dy);
+    public void move(double destX, double destY, Player player){
+        double directionX = destX - player.getX();
+        double directionY = destY - player.getY();
+        double distance = Math.sqrt(Math.pow(directionX,2)+Math.pow(directionY,2));
 
         if(distance == 0) {
             player.setSpeed(MIN_SPEED);
         } else {
             double maxSpeed = player.currentMaxSpeed() / Math.sqrt(player.getMass());
-            player.setDirectionX(dx / distance);
-            player.setDirectionY(dy / distance);
+            player.setDirectionX(directionX / distance);
+            player.setDirectionY(directionY / distance);
             if(player.getSpeed() > player.currentMaxSpeed()){
                 long elapsedTime = System.currentTimeMillis() - player.GetLastSpeedBoostTime();
                 if (elapsedTime >= SPEED_DECAY_DURATION) {
