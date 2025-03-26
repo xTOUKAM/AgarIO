@@ -1,8 +1,10 @@
 package iut.gon.agario.main;
 
+import iut.gon.agario.Config;
 import iut.gon.agario.model.*;
 import iut.gon.agario.model.AI.AIPlayer;
 import iut.gon.agario.model.AI.EatFoodStrategy;
+import iut.gon.agario.view.SettingsDialog;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Application;
@@ -125,9 +127,29 @@ public class Main extends Application {
         //game settings
         Button settingsButton = new Button("Settings");
 
-        settingsButton.setLayoutX(10);
-        settingsButton.setLayoutY(10);
+        settingsButton.setLayoutX(0);
+        settingsButton.setLayoutY(0);
         root.getChildren().add(settingsButton);
+        settingsButton.setOnAction(e ->{
+            SettingsDialog dialog = new SettingsDialog();
+            dialog.showAndWait().ifPresent(result->{
+                Config.ABSORPTION_RATIO = result.getrAbsorptionRatio();
+                Config.MERGE_OVERLAP = result.getrMergeOverlap();
+                Config.DECAY_FACTOR = result.getrDecayFactor();
+                Config.SPEED_DECAY_DURATION =result.getrSpeedDecayDuration();
+                Config.CONTROL_RADIUS = result.getrControlRadius();
+                Config.MIN_SPEED = result.getrMinSpeed();
+                Config.PELLET_MASS = result.getrPelletMass();
+                Config.INITIAL_MAX_SPEED = result.getrInitialMaxSpeed();
+                Config.COEFFICIENT_ATTENUATION = result.getrCoefficientAttenuation();
+                Config.MINIMUM_SPLIT = result.getrMinimumSplit();
+                Config.MASS_BUFF_MULTIPLIER = result.getrMassBuffMultiplier();
+                Config.MASS_NERF_MULTIPLIER = result.getrMassNerfMultiplier();
+                Config.SPEED_BUFF_MULTIPLIER = result.getrSpeedBuffMultiplier();
+                Config.SPEED_NERF_MULTIPLIER = result.getrSpeedNerfMultiplier();
+                Config.BASE_ZOOM = result.getrBaseZoom();
+            });
+        });
 
 
         // Game loop
