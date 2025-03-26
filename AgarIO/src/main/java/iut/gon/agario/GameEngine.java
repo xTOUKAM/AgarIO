@@ -1,16 +1,13 @@
 package iut.gon.agario;
 
 import iut.gon.agario.model.*;
-import iut.gon.serveur.GameServer;
-import iut.gon.serveur.MessageType;
 
 public class GameEngine extends Thread {
-    private final GameWorld gameWorld;
-    private GameServer gameServer;
 
-    public GameEngine(GameWorld gameWorld, GameServer gameServer) {
+    private final GameWorld gameWorld;
+
+    public GameEngine(GameWorld gameWorld) {
         this.gameWorld = gameWorld;
-        this.gameServer = gameServer;
     }
 
     @Override
@@ -20,16 +17,12 @@ public class GameEngine extends Thread {
                 // Mise à jour du monde du jeu
                 gameWorld.update();
 
-                // Logique du moteur de jeu (gestion des collisions, mouvements des joueurs, etc.)
-                for (Player player : gameWorld.getPlayers()) {
-                    // Logique pour gérer les joueurs (ex. mise à jour de la position, collision, etc.)
-                }
 
                 // Attente avant la prochaine mise à jour (contrôler la vitesse de mise à jour du jeu)
                 Thread.sleep(33);  // 30 FPS
 
                 // Envoie l'état du jeu à tous les clients
-                sendGameStateToServer();
+                //sendGameStateToServer();
 
             } catch (InterruptedException e) {
                 System.out.println("Game engine interrupted.");
@@ -55,14 +48,5 @@ public class GameEngine extends Thread {
 
         state.append("Other game world info (e.g., obstacles, game state)..."); // Ajoutez plus de détails sur le monde du jeu
         return state.toString();
-    }
-
-    // Nouvelle méthode pour envoyer l'état du jeu au serveur
-    private void sendGameStateToServer() {
-        // Récupère l'état du jeu sous forme de chaîne
-        String gameState = getGameState();
-
-        // Envoie l'état à tous les clients via le serveur
-        gameServer.sendToAllClient(MessageType.SERVER_GAME_STATE, gameState, true);
     }
 }

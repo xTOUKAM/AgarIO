@@ -1,12 +1,8 @@
 package iut.gon.serveur;
 
-import iut.gon.agario.main.Main;
-import iut.gon.agario.model.Player;
-
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.Scanner;
 
@@ -103,10 +99,8 @@ public class GameServer {
         Thread gameClock = new Thread(() -> {
             try {
                 while (true) {
-                    // TODO: Obtenez l'état du jeu réel à partir du moteur de jeu.
-                    // Vous devrez probablement récupérer les scores de tous les joueurs ici
-                    String gameState = getGameState();  // Méthode qui récupère les informations de l'état du jeu, y compris les scores
-                    gameServer.sendToAllClient(MessageType.SERVER_GAME_STATE, gameState, true);
+                    // TODO usegame state from game engine
+                    gameServer.sendToAllClient(MessageType.SERVER_GAME_STATE, "GameState", true);
                     Thread.sleep(1000);
                 }
             } catch (InterruptedException e) {
@@ -129,17 +123,5 @@ public class GameServer {
                 }
             }
         }
-    }
-
-    public static String getGameState() {
-        StringBuilder gameState = new StringBuilder();
-
-        for (Player player : Main.getGameWorld().getPlayers()) {
-            String playerScore = Arrays.toString(player.getScore());
-            gameState.append("Player ID: ").append(player.getId())
-                    .append(" | Score: ").append(playerScore);
-        }
-
-        return gameState.toString();
     }
 }
