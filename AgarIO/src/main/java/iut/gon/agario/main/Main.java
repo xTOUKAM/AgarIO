@@ -13,6 +13,7 @@ import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.input.KeyCode;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
@@ -33,12 +34,13 @@ public class Main extends Application {
     public static final int HEIGHT = 720;
     private static final int NUM_PASTILLES = 100;
     private static final int NUM_BOTS = 5;
-    private List<Pastille> pastilles;
+    private List<Pellet> pastilles;
     private List<AIPlayer> bots;
-    private Player player;
+    private CompositePlayer compositePlayer;
     private GameWorld gameWorld;
     private Camera camera;
     private Canvas gameCanvas;
+    private double x, y;
 
     @Override
     public void start(Stage primaryStage) {
@@ -69,7 +71,8 @@ public class Main extends Application {
         spawnPlayer(root);
 
         // Create camera
-        camera = new Camera(player);
+        camera = new Camera(compositePlayer);
+
 
         // Create mini-map
         Canvas miniMap = new Canvas(CANVAS_WIDTH, CANVAS_HEIGHT);
@@ -82,7 +85,7 @@ public class Main extends Application {
         scoreBox.setLayoutX(WIDTH - 210);
         scoreBox.setLayoutY(10);
         root.getChildren().add(scoreBox);
-
+/*
         // Chat box
         TextArea chatHistory = new TextArea();
         chatHistory.setPrefHeight(100);
@@ -94,14 +97,28 @@ public class Main extends Application {
         TextField chatInput = new TextField();
         chatInput.setLayoutX(10);
         chatInput.setLayoutY(HEIGHT - 30);
-        root.getChildren().add(chatInput);
+        root.getChildren().add(chatInput);*/
 
         scene.setOnMouseMoved(e -> {
-            gameWorld.move(e.getX(), e.getY(), player);
+            x = e.getX();
+            y = e.getY();
+        });
+
+        scene.setOnKeyPressed(e ->{
+            if (e.getCode() == KeyCode.SPACE) {
+                compositePlayer.split(x,y);
+                List<Player> newPlayers = compositePlayer.getPlayers();
+                for (Player player : newPlayers) {
+                    root.getChildren().add(player.getRepresentation());
+                }
+            }
         });
 
         // Game loop
-        Timeline timeline = new Timeline(new KeyFrame(Duration.millis(20), e -> update(miniMap, scoreBox)));
+        Timeline timeline = new Timeline(new KeyFrame(Duration.millis(33), e -> {
+            update(miniMap, scoreBox);
+            compositePlayer.update();
+            gameWorld.move(x,y,compositePlayer);}));
         timeline.setCycleCount(Timeline.INDEFINITE);
         timeline.play();
     }
@@ -111,10 +128,10 @@ public class Main extends Application {
         for (int i = 0; i < NUM_PASTILLES; i++) {
             double x = rand.nextDouble() * WIDTH;
             double y = rand.nextDouble() * HEIGHT;
-            Pastille pastille = new Pastille(x, y, 5, Color.GREEN);
+            Pellet pastille = new Pellet(x, y, 5, Color.GREEN);
             pastilles.add(pastille);
             root.getChildren().add(pastille.getRepresentation());
-            gameWorld.addPastille(pastille);
+            gameWorld.addPellet(pastille);
         }
     }
 
@@ -132,29 +149,63 @@ public class Main extends Application {
     }
 
     private void spawnPlayer(Pane root) {
-        player = new Player(WIDTH / 2, HEIGHT / 2, 30, Color.BLUE);
+        Player player = new Player(WIDTH / 2, HEIGHT / 2, 30, Color.BLUE);
+        compositePlayer = new CompositePlayer(player, gameWorld);
         root.getChildren().add(player.getRepresentation());
-        gameWorld.addPlayer(player);
     }
 
-    private void update(Canvas miniMap, VBox scoreBox) {
-        // Update bots movements
-        for (AIPlayer bot : bots) {
+    private synchronized void update(Canvas miniMap, VBox scoreBox) {
+        // Crée une copie de la liste des bots pour éviter les problèmes de modification concurrente
+        List<AIPlayer> botsCopy = new ArrayList<>(bots);
+
+        // Met à jour la logique des bots
+        for (AIPlayer bot : botsCopy) {
             bot.makeDecision(gameWorld);
         }
 
-        // Check for collisions between player and pastilles
-        checkCollisions(player);
+        // Met à jour l'état du monde de jeu
+        gameWorld.update();
 
-        // Check for collisions between bots and pastilles
-        for (AIPlayer bot : bots) {
-            checkCollisions(bot);
-            checkCollisionsAI(player);
+        // Vérifie les collisions entre le joueur et les pastilles
+        checkCollisions(compositePlayer);
+
+        // Utilisation d'une copie de la liste pour itérer et éviter les erreurs de modification concurrente
+        synchronized (this) {
+            for (AIPlayer bot : botsCopy) {
+                // Crée un composite pour chaque bot
+                CompositePlayer compositeBot = new CompositePlayer(bot, gameWorld);
+
+                // Vérifie les collisions entre les bots et le joueur composite
+                checkCollisions(compositeBot);
+                checkCollisionsAI(compositePlayer);
+
+                // Vérifie les collisions entre les bots
+                gameWorld.checkBotCollisions(bots);
+            }
         }
 
+        // Mise à jour de la caméra
         camera.update();
+
+        // Déplace le joueur composite en fonction des coordonnées de la souris
+        compositePlayer.move(x, y);
+
+        // Rend la scène et met à jour le mini-map et le score
         render(miniMap, scoreBox);
     }
+/*
+
+
+        checkCollisions(compositePlayer); // Vérifie les collisions entre le joueur et les pastilles
+        checkCollisionsAI(compositePlayer); // Vérifie les collisions entre le joueur et les bots
+        gameWorld.checkBotCollisions(bots);  // Vérifier les collisions entre bots
+
+        // Redessiner la scène (y compris les positions des bots et du joueur)
+        compositePlayer.update();
+        render(miniMap, scoreBox);  // Redessine le jeu et met à jour les positions à chaque tick de la boucle
+    }
+*/
+
 
     private void render(Canvas miniMap, VBox scoreBox) {
         // Clear the mini-map
@@ -177,38 +228,59 @@ public class Main extends Application {
         List<Player> topPlayers = leaderboard.getLeaderboard(10);
     }
 
-    private void checkCollisionsAI(Player currentPlayer) {
+    private void checkCollisionsAI(CompositePlayer compositePlayer) {
         List<AIPlayer> eatenAI = new ArrayList<>();
-        for(AIPlayer aiPlayer : bots) {
-            if(currentPlayer.getRepresentation().getBoundsInParent().intersects(aiPlayer.getRepresentation().getBoundsInParent())) {
-                eatenAI.add(aiPlayer);
-                currentPlayer.setMass(currentPlayer.getMass() + aiPlayer.getMass());
+        for (Player player : compositePlayer.getPlayers()) {
+            for (AIPlayer aiPlayer : bots) {
+                if (player.getRepresentation().getBoundsInParent().intersects(aiPlayer.getRepresentation().getBoundsInParent())) {
+                    eatenAI.add(aiPlayer);
+                    player.setMass(player.getMass() + aiPlayer.getMass());
+                }
             }
         }
 
         bots.removeAll(eatenAI);
         for(AIPlayer aiPlayer : eatenAI) {
-            if(currentPlayer.getRepresentation().getParent() instanceof Pane parent) {
-                parent.getChildren().remove(aiPlayer.getRepresentation());
+            for (Player player : compositePlayer.getPlayers()) {
+                if (player.getRepresentation().getParent() instanceof Pane parent) {
+                    parent.getChildren().remove(aiPlayer.getRepresentation());
+                }
             }
         }
     }
 
-    private void checkCollisions(Player player) {
-        List<Pastille> eatenPastilles = new ArrayList<>();
-        for (Pastille pastille : pastilles) {
-            if (player.getRepresentation().getBoundsInParent().intersects(pastille.getRepresentation().getBoundsInParent())) {
-                eatenPastilles.add(pastille);
-                player.setMass(player.getMass() + 1); // Increase player mass when eating a pastille
+    private void checkCollisions(CompositePlayer compositePlayer) {
+        List<Pellet> eatenPastilles = new ArrayList<>();
+        for (Player player : compositePlayer.getPlayers()){
+            for (Pellet pastille : pastilles) {
+                if (player.getRepresentation().getBoundsInParent().intersects(pastille.getRepresentation().getBoundsInParent())) {
+                    eatenPastilles.add(pastille);
+                    player.setMass(player.getMass() + 1);
+                }
             }
         }
+
         pastilles.removeAll(eatenPastilles);
-        for (Pastille pastille : eatenPastilles) {
-            if (player.getRepresentation().getParent() instanceof Pane parent) {
-                parent.getChildren().remove(pastille.getRepresentation());
+        for (Pellet pastille : eatenPastilles) {
+            for (Player player : compositePlayer.getPlayers()) {
+                if (player.getRepresentation().getParent() instanceof Pane parent) {
+                    parent.getChildren().remove(pastille.getRepresentation());
+                }
+            }
+        }
+
+        List<Player> players = compositePlayer.getPlayers();
+        for (Player player1 : players) {
+            for (Player player2 : players) {
+                if (player1.getMass() > player2.getMass()) {
+                    gameWorld.absorb(player2, player1);
+                } else {
+                    gameWorld.absorb(player1, player2);
+                }
             }
         }
     }
+
 
     public static void main(String[] args) {
         launch(args);
