@@ -26,27 +26,20 @@ public class ClientHandler extends Thread{
         boolean keepListening = true;
         while(keepListening) {
             try {
-                switch (MessageType.values()[Integer.parseInt(clientOutput.readLine())]){
-
-                    case CLIENT_STATUS:
-                        this.gameServer.updateClientStatus(this.ID, Boolean.parseBoolean(clientOutput.readLine()));
-
-                        break;
-
-                    case CLIENT_MOVEMENT:
+                switch (MessageType.values()[Integer.parseInt(clientOutput.readLine())]) {
+                    case CLIENT_STATUS ->
+                            this.gameServer.updateClientStatus(this.ID, Boolean.parseBoolean(clientOutput.readLine()));
+                    case CLIENT_MOVEMENT ->
                         //TODO send data to game engine
-                        clientOutput.readLine();
-                        break;
-
-                    case CLIENT_CHAT_MESSAGE:
+                            clientOutput.readLine();
+                    case CLIENT_CHAT_MESSAGE ->
                         //TODO update chat with new message
-                        clientOutput.readLine();
-                        break;
-
-                    default:
+                            clientOutput.readLine();
+                    default -> {
                         keepListening = false;
-                        System.out.println("SERVER | Connection to client "+ this.ID +" stopped unexpectedly");
+                        System.out.println("SERVER | Connection to client " + this.ID + " stopped unexpectedly");
                         socket.close();
+                    }
                 }
             } catch (Exception e) {
                 keepListening = false;

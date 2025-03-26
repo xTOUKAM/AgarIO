@@ -32,32 +32,27 @@ public class GameClient {
             boolean keepListening = true;
             while(keepListening) {
                 try {
-                    switch (MessageType.values()[Integer.parseInt(serverOutput.readLine())]){
-
-                        case SERVER_ID:
+                    switch (MessageType.values()[Integer.parseInt(serverOutput.readLine())]) {
+                        case SERVER_ID -> {
                             this.ID = Integer.parseInt(serverOutput.readLine());
                             System.out.println("CLIENT | ID received => " + this.ID);
-                            break;
-
-                        case SERVER_INITIAL_GAME_STATE:
+                        }
+                        case SERVER_INITIAL_GAME_STATE -> {
                             //TODO initialize  client renderer
                             System.out.println(serverOutput.readLine());
                             Communication.send(serverInput, MessageType.CLIENT_STATUS, "true");
-                            break;
-
-                        case SERVER_GAME_STATE:
+                        }
+                        case SERVER_GAME_STATE ->
                             //TODO send data to client renderer
-                            System.out.println(serverOutput.readLine());
-                            break;
-
-                        case SERVER_STOP:
+                                System.out.println(serverOutput.readLine());
+                        case SERVER_STOP -> {
                             System.out.println("CLIENT | server stopped");
                             keepListening = false;
-                            break;
-
-                        default:
+                        }
+                        default -> {
                             keepListening = false;
                             System.out.println("CLIENT | server stopped unexpectedly");
+                        }
                     }
                 } catch (Exception e) {
                     keepListening = false;
