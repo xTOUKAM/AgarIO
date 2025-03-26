@@ -145,23 +145,23 @@ public class QuadTree {
         return returnObjects;
     }
 
-    public List<Pastille> retrieveAllPastillesInBoundary(Boundary queryBoundary) {
-        List<Pastille> returnObjects = new ArrayList<>();
+    public List<Pellet> retrieveAllPelletsInBoundary(Boundary queryBoundary) {
+        List<Pellet> returnObjects = new ArrayList<>();
         if (!bounds.intersects(queryBoundary)) {
             return returnObjects;
         }
 
         for (Entity entity : objects) {
             if (queryBoundary.intersectsWithEntity(entity)) {
-                if(entity instanceof Pastille){
-                    returnObjects.add((Pastille) entity);
+                if(entity instanceof Pellet){
+                    returnObjects.add((Pellet) entity);
                 }
             }
         }
 
         if (nodes[0] != null) {
             for (QuadTree node : nodes) {
-                returnObjects.addAll(node.retrieveAllPastillesInBoundary(queryBoundary));
+                returnObjects.addAll(node.retrieveAllPelletsInBoundary(queryBoundary));
             }
         }
         return returnObjects;

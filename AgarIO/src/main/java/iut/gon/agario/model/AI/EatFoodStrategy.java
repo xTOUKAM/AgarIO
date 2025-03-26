@@ -9,7 +9,7 @@ public class EatFoodStrategy implements AIDecisionStrategy{
 
     @Override
     public void makeDecision(AIPlayer aiPlayer, GameWorld gameWorld) {
-        List<Pellet> pellets = gameWorld.getPastilles();
+        List<Pellet> pellets = gameWorld.getPellets();
         Pellet target = null;
 
         double minDistance = Double.MAX_VALUE;

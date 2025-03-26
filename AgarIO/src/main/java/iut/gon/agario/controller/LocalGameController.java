@@ -7,7 +7,7 @@ import java.util.List;
 
 public class LocalGameController extends GameController {
     private List<Player> playersInRenderDistance;
-    private  List<Pastille> pastillesInRenderDistance;
+    private  List<Pellet> pelletsInRenderDistance;
     public LocalGameController(GameWorld gameWorld) {
         super(gameWorld);
     }
@@ -31,13 +31,13 @@ public class LocalGameController extends GameController {
         //take camera zoom into account
         Boundary queryBoundary = new Boundary(x,y,wd,ht);
         playersInRenderDistance = gameWorld.getQuadTree().retrieveAllPlayersInBoundary(queryBoundary);
-        pastillesInRenderDistance = gameWorld.getQuadTree().retrieveAllPastillesInBoundary(queryBoundary);
+        pelletsInRenderDistance = gameWorld.getQuadTree().retrieveAllPelletsInBoundary(queryBoundary);
     }
 
     public List<Player> getPlayesInRenderDistance(){
         return playersInRenderDistance;
     }
-    public List<Pastille> getPastillesInRenderDistance(){
-        return pastillesInRenderDistance;
+    public List<Pellet> getPastillesInRenderDistance(){
+        return pelletsInRenderDistance;
     }
 }

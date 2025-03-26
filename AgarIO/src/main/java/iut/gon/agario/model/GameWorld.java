@@ -58,7 +58,7 @@ public class GameWorld {
         return new CopyOnWriteArrayList<>(players);
     }
 
-    public List<Pellet> getPastilles() {
+    public List<Pellet> getPellets() {
         return new CopyOnWriteArrayList<>(pellets);
     }
 

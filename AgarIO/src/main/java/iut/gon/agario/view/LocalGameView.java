@@ -2,7 +2,7 @@ package iut.gon.agario.view;
 
 import iut.gon.agario.controller.LocalGameController;
 import iut.gon.agario.model.GameWorld;
-import iut.gon.agario.model.Pastille;
+import iut.gon.agario.model.Pellet;
 import iut.gon.agario.model.Player;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
@@ -52,8 +52,8 @@ public class LocalGameView extends GameView {
         for (Player player : gameController.getPlayesInRenderDistance()) {
             rootPane.getChildren().add(player.getRepresentation());
         }
-        for (Pastille pastille : gameController.getPastillesInRenderDistance()){
-            rootPane.getChildren().add((pastille.getRepresentation()));
+        for (Pellet pellet : gameController.getPastillesInRenderDistance()){
+            rootPane.getChildren().add((pellet.getRepresentation()));
         }
     }
 
