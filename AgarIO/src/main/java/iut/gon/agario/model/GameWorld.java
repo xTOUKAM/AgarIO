@@ -1,5 +1,6 @@
 package iut.gon.agario.model;
 
+import iut.gon.agario.Config;
 import iut.gon.agario.model.factory.PelletFactory;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
@@ -19,12 +20,6 @@ public class GameWorld {
     private final ObservableList<Pellet> pellets;
     private final QuadTree quadTree;
 
-    private static final double ABSORPTION_RATIO = 1.33;
-    private static final double MERGE_OVERLAP = 0.33;
-    private static final double DECAY_FACTOR = 5.0;
-    private static final long SPEED_DECAY_DURATION = 1300;
-    private static final long CONTROL_RADIUS = 1000;
-    private static final double MIN_SPEED = 0;
 
     public GameWorld(double width, double height) {
         this.width = new SimpleDoubleProperty(width);
@@ -122,10 +117,10 @@ public class GameWorld {
     }
 
     public boolean canAbsorb(Entity other, Player player){
-        if((player.getId() == other.getId()) && (overlap(other,player) >= MERGE_OVERLAP)) {
+        if((player.getId() == other.getId()) && (overlap(other,player) >= Config.MERGE_OVERLAP)) {
             return true;
         }
-        return (player.getMass() >= other.getMass() * ABSORPTION_RATIO) && (overlap(other,player) >= MERGE_OVERLAP);
+        return (player.getMass() >= other.getMass() * Config.ABSORPTION_RATIO) && (overlap(other,player) >= Config.MERGE_OVERLAP);
     }
 
     public void absorb(Entity other, Player player) {
@@ -141,21 +136,21 @@ public class GameWorld {
         double distance = Math.sqrt(dx * dx + dy * dy);
 
         if(distance == 0) {
-            player.setSpeed(MIN_SPEED);
+            player.setSpeed(Config.MIN_SPEED);
         } else {
             double maxSpeed = player.currentMaxSpeed() / Math.sqrt(player.getMass());
             player.setDirectionX(dx / distance);
             player.setDirectionY(dy / distance);
             if(player.getSpeed() > player.currentMaxSpeed()){
                 long elapsedTime = System.currentTimeMillis() - player.GetLastSpeedBoostTime();
-                if (elapsedTime >= SPEED_DECAY_DURATION) {
+                if (elapsedTime >= Config.SPEED_DECAY_DURATION) {
                     player.setSpeed(maxSpeed);
                 } else {
-                    double decayFactor = Math.exp(-DECAY_FACTOR * elapsedTime / SPEED_DECAY_DURATION);
+                    double decayFactor = Math.exp(-Config.DECAY_FACTOR * elapsedTime / Config.SPEED_DECAY_DURATION);
                     player.setSpeed(maxSpeed + (player.getSpeed() - maxSpeed) * decayFactor);
                 }
             } else {
-                player.setSpeed(maxSpeed * Math.min(1.0, distance / CONTROL_RADIUS));
+                player.setSpeed(maxSpeed * Math.min(1.0, distance / Config.CONTROL_RADIUS));
             }
         }
         player.setX(player.getX() + player.getDirectionX() * player.getSpeed());

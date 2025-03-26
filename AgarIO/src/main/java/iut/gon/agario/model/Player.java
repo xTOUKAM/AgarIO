@@ -1,5 +1,6 @@
 package iut.gon.agario.model;
 
+import iut.gon.agario.Config;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.DoubleBinding;
 import javafx.beans.property.DoubleProperty;
@@ -24,9 +25,6 @@ public class Player implements Entity {
     }
 
     private long lastSpeedBoostTime = 0;
-    private static final double INITIAL_MAX_SPEED = 100.0;
-    private static final double COEFFICIENT_ATTENUATION = 0.3;
-    private static final long MINIMUM_SPLIT = 40;
 
     public Player(double startX, double startY, double startMass, Color color) {
         this.id = idCounter++;
@@ -133,7 +131,7 @@ public class Player implements Entity {
     }
 
     public double currentMaxSpeed() {
-        return INITIAL_MAX_SPEED * Math.pow((10 / this.getMass()), COEFFICIENT_ATTENUATION);
+        return Config.INITIAL_MAX_SPEED * Math.pow((10 / this.getMass()), Config.COEFFICIENT_ATTENUATION);
     }
 
     public void setMaxSpeed(double val){
@@ -150,7 +148,7 @@ public class Player implements Entity {
     }
 
     public Player split() {
-        if (this.getMass() < MINIMUM_SPLIT) return null;
+        if (this.getMass() < Config.MINIMUM_SPLIT) return null;
 
         double newMass = this.getMass() / 2;
         this.setMass(newMass);

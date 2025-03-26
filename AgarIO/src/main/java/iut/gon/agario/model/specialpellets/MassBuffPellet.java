@@ -1,5 +1,6 @@
 package iut.gon.agario.model.specialpellets;
 
+import iut.gon.agario.Config;
 import iut.gon.agario.model.Player;
 import javafx.scene.paint.Color;
 
@@ -12,6 +13,6 @@ public class MassBuffPellet extends SpecialPellet {
 
     @Override
     public void applyEffect() {
-        player.setMass(player.getMass()*1.33);
+        player.setMass(player.getMass()* Config.MASS_BUFF_MULTIPLIER);
     }
 }

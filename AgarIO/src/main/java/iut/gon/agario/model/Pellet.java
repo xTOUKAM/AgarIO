@@ -1,5 +1,6 @@
 package iut.gon.agario.model;
 
+import iut.gon.agario.Config;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.scene.paint.Color;
@@ -12,7 +13,7 @@ public class Pellet implements Entity {
     private final DoubleProperty x;
     private final DoubleProperty y;
     private final DoubleProperty radius;
-    private static final double PELLET_MASS = 5;
+
     public Pellet(double startX, double startY, double startRadius, Color color) {
         this.id = idCounter++;
         this.x = new SimpleDoubleProperty(startX);
@@ -65,7 +66,7 @@ public class Pellet implements Entity {
 
     @Override
     public double getMass() {
-        return PELLET_MASS;
+        return Config.PELLET_MASS;
     }
 
     public DoubleProperty yProperty() {

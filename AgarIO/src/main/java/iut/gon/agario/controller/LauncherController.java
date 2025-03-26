@@ -5,7 +5,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.stage.Stage;
 
-public class AgarIOMenuController {
+public class LauncherController {
     @FXML
     public Button btn_quit;
     @FXML

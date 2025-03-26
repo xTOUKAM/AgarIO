@@ -9,11 +9,12 @@ import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
-import javafx.scene.layout.Pane;
-import javafx.scene.layout.VBox;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.util.Duration;
@@ -97,13 +98,37 @@ public class Main extends Application {
         root.getChildren().add(chatHistory);
 
         TextField chatInput = new TextField();
-        chatInput.setLayoutX(10);
-        chatInput.setLayoutY(HEIGHT - 30);
-        root.getChildren().add(chatInput);
+        chatInput.setDisable(true);
+        StackPane inputPane = new StackPane();
+        inputPane.getChildren().add(chatInput);
+        inputPane.addEventHandler(MouseEvent.MOUSE_CLICKED, event -> {
+            if (chatInput.isDisabled()) {
+                chatInput.setDisable(false);
+                chatInput.requestFocus();
+                event.consume();
+            }
+        });
+
+        scene.setOnMouseClicked(e ->{
+            if(!inputPane.isFocused() && !chatInput.isDisabled()){
+                chatInput.setDisable(true);
+            }
+        });
+        inputPane.setLayoutX(10);
+        inputPane.setLayoutY(HEIGHT - 30);
+        root.getChildren().add(inputPane);
 
         scene.setOnMouseMoved(e -> {
             gameWorld.move(e.getX(), e.getY(), player);
         });
+
+        //game settings
+        Button settingsButton = new Button("Settings");
+
+        settingsButton.setLayoutX(10);
+        settingsButton.setLayoutY(10);
+        root.getChildren().add(settingsButton);
+
 
         // Game loop
         Timeline timeline = new Timeline(new KeyFrame(Duration.millis(20), e -> update(miniMap, scoreBox)));

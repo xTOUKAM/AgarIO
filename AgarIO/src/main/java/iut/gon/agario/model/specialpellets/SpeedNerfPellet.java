@@ -1,5 +1,6 @@
 package iut.gon.agario.model.specialpellets;
 
+import iut.gon.agario.Config;
 import iut.gon.agario.model.Player;
 import javafx.scene.paint.Color;
 
@@ -12,6 +13,6 @@ public class SpeedNerfPellet extends SpecialPellet {
 
     @Override
     public void applyEffect() {
-        player.setMaxSpeed(player.currentMaxSpeed()*0.66);
+        player.setMaxSpeed(player.currentMaxSpeed()* Config.SPEED_NERF_MULTIPLIER);
     }
 }

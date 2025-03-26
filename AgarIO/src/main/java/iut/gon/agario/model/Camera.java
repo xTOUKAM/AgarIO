@@ -1,5 +1,6 @@
 package iut.gon.agario.model;
 
+import iut.gon.agario.Config;
 import iut.gon.agario.main.Main;
 import javafx.geometry.Rectangle2D;
 
@@ -8,7 +9,6 @@ public class Camera {
     private double y;
     private double zoom;
     private final Player player;
-    private static final double BASE_ZOOM = 100;
 
     public Camera(Player player) {
         this.player = player;
@@ -60,6 +60,6 @@ public class Camera {
     }
 
     private double calculateZoom(double mass) {
-        return BASE_ZOOM / Math.sqrt(mass);
+        return Config.BASE_ZOOM / Math.sqrt(mass);
     }
 }
