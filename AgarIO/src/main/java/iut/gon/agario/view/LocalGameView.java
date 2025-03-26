@@ -1,6 +1,7 @@
 package iut.gon.agario.view;
 
 import iut.gon.agario.controller.LocalGameController;
+import iut.gon.agario.model.Cell;
 import iut.gon.agario.model.GameWorld;
 import iut.gon.agario.model.Pellet;
 import iut.gon.agario.model.Player;
@@ -50,7 +51,9 @@ public class LocalGameView extends GameView {
         super.updateView();
         updateScoreboard();
         for (Player player : gameController.getPlayesInRenderDistance()) {
-            rootPane.getChildren().add(player.getRepresentation());
+            for(Cell cell : player.getCells()){
+                rootPane.getChildren().add(cell.getRepresentation());
+            }
         }
         for (Pellet pellet : gameController.getPastillesInRenderDistance()){
             rootPane.getChildren().add((pellet.getRepresentation()));
