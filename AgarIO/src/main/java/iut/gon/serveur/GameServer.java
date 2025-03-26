@@ -1,7 +1,5 @@
 package iut.gon.serveur;
 
-import iut.gon.client.MessageType;
-
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -10,7 +8,7 @@ import java.util.Scanner;
 
 public class GameServer{
 
-    private final LinkedList<Client> clients = new LinkedList<>();
+    private final LinkedList<ClientInput> clientInputs = new LinkedList<>();
     private final ServerSocket server;
     private int lastID = 1;
     private boolean running = true;
@@ -23,30 +21,36 @@ public class GameServer{
     }
 
 
-    public void sendToAllClient(MessageType messageType, String data){
-        for(Client client: clients){
-            if(client.online){
-                client.printWriter.write(messageType.ordinal()+"\n");
-                client.printWriter.write(data +"\n");
-                client.printWriter.flush();
+    public void sendToAllClient(MessageType messageType, String data, boolean OnlineCheck){
+        for(ClientInput clientInput : clientInputs){
+            if(OnlineCheck){
+                if(clientInput.online){
+                    Communication.send(clientInput.printWriter, messageType, data);
+                }
+            }else {
+                Communication.send(clientInput.printWriter, messageType, data);
             }
         }
     }
 
-    public void sendToClientByID(MessageType messageType, String data, int ID){
-        for(Client client: clients){
-            if(client.online && client.ID == ID){
-                client.printWriter.write(messageType.ordinal()+"\n");
-                client.printWriter.write(data +"\n");
-                client.printWriter.flush();
+    public void sendToClientByID(MessageType messageType, String data, int ID, boolean OnlineCheck){
+        for(ClientInput clientInput : clientInputs){
+            if(clientInput.ID == ID){
+                if(OnlineCheck){
+                    if(clientInput.online){
+                        Communication.send(clientInput.printWriter, messageType, data);
+                    }
+                }else {
+                    Communication.send(clientInput.printWriter, messageType, data);
+                }
             }
         }
     }
 
     public void updateClientStatus(int ID, boolean status){
-        for(Client client: clients){
-            if(client.ID == ID){
-                client.online = status;
+        for(ClientInput clientInput : clientInputs){
+            if(clientInput.ID == ID){
+                clientInput.online = status;
             }
         }
     }
@@ -61,14 +65,16 @@ public class GameServer{
                 Socket newClientSocket = server.accept();
                 System.out.println("SERVER | new connection ID => "+this.lastID+ " SOCKET => " +newClientSocket.toString());
                 PrintWriter clientOutput = new PrintWriter(newClientSocket.getOutputStream(), false);
-                synchronized (this.clients){
-                    this.clients.add(new Client(lastID, clientOutput));
+                synchronized (this.clientInputs){
+                    this.clientInputs.add(new ClientInput(lastID, clientOutput));
                 }
 
                 //send id to client
-                clientOutput.write("0\n");
-                clientOutput.write(lastID + "\n");
-                clientOutput.flush(); // Send off the data
+                sendToClientByID(MessageType.SERVER_ID, ""+lastID, lastID, false);
+
+                //send first game state to client for rendering
+                String data = "Initial game state";//TODO get game state from game engine instead
+                sendToClientByID(MessageType.SERVER_INITIAL_GAME_STATE, data, lastID, false);
 
                 //set up socket for client input
                 ClientHandler clientHandler = new ClientHandler(newClientSocket, this, lastID++);
@@ -80,9 +86,12 @@ public class GameServer{
 
     }
 
-
     public static void main(String[] args) {
-        GameServer gameServer = new GameServer(Integer.parseInt(args[0]));
+        GameServer.launch(Integer.parseInt(args[0]));
+    }
+
+    public static void launch(int port){
+        GameServer gameServer = new GameServer(port);
         Thread lisenningThread = new Thread(gameServer::startServer);
         lisenningThread.start();
 
@@ -94,7 +103,7 @@ public class GameServer{
             try {
                 while (true) {
                     //TODO use game state from game engine
-                    gameServer.sendToAllClient(MessageType.SERVER_GAME_STATE,"Game data");
+                    gameServer.sendToAllClient(MessageType.SERVER_GAME_STATE,"Game data", true);
                     Thread.sleep(1000);
                 }
             } catch (InterruptedException e) {
@@ -106,17 +115,20 @@ public class GameServer{
 
         //SERVER STOP
         Scanner inputReader = new Scanner(System.in);
-
         while (gameServer.running){
             if(inputReader.hasNext()){
-                if("stop".equals(inputReader.next())){
+                String text = inputReader.next();
+                if("stop".equals(text) || "STOP".equals(text)){
                     gameServer.running = false;
                     //TODO send error message to all client
-                    gameServer.sendToAllClient(MessageType.SERVER_STOP, "stop");
+                    gameServer.sendToAllClient(MessageType.SERVER_STOP, "stop", false);
                     System.out.println("SERVER | stopped successfully");
                     System.exit(0);
                 }
             }
         }
     }
+
+
+
 }

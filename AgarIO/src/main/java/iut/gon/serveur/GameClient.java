@@ -1,6 +1,4 @@
-package iut.gon.client;
-
-import iut.gon.serveur.Client;
+package iut.gon.serveur;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -29,7 +27,7 @@ public class GameClient {
         }
     }
 
-    private void ConnectToServer(){
+    private void serverMessageHandler(){
         Thread ConnectionToServer = new Thread(() -> {
             boolean keepListening = true;
             while(keepListening) {
@@ -39,6 +37,12 @@ public class GameClient {
                         case SERVER_ID:
                             this.ID = Integer.parseInt(serverOutput.readLine());
                             System.out.println("CLIENT | ID received => " + this.ID);
+                            break;
+
+                        case SERVER_INITIAL_GAME_STATE:
+                            //TODO initialize  client renderer
+                            System.out.println(serverOutput.readLine());
+                            Communication.send(serverInput, MessageType.CLIENT_STATUS, "true");
                             break;
 
                         case SERVER_GAME_STATE:
@@ -56,17 +60,12 @@ public class GameClient {
                             System.out.println("CLIENT | server stopped unexpectedly");
                     }
                 } catch (IOException e) {
-                    throw new RuntimeException(e);
+                    keepListening = false;
+                    System.out.println("CLIENT | server stopped unexpectedly");
                 }
             }
         });
         ConnectionToServer.start();
-    }
-
-    public void sendToServer(MessageType messageType, String data){
-        serverInput.write(messageType.ordinal()+"\n");
-        serverInput.write(data +"\n");
-        serverInput.flush();
     }
 
     public static void main(String[] args) {
@@ -78,7 +77,7 @@ public class GameClient {
         GameClient gameClient = new GameClient(serverAddress, serverPort);
 
         //Listen to server output
-        gameClient.ConnectToServer();
+        gameClient.serverMessageHandler();
 
         //TODO run client game renderer
     }

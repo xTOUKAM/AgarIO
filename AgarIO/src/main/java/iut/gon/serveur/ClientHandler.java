@@ -1,17 +1,17 @@
 package iut.gon.serveur;
 
-import iut.gon.client.MessageType;
-
 import java.io.*;
 import java.net.Socket;
 
 public class ClientHandler extends Thread{
 
-    private final BufferedReader clientOutput;
     private final int ID;
+    private final Socket socket;
+    private final BufferedReader clientOutput;
     private final GameServer gameServer;
 
     public ClientHandler(Socket socket, GameServer gameServer, int ID){
+        this.socket = socket;
         this.gameServer = gameServer;
         this.ID = ID;
         try {
@@ -30,6 +30,7 @@ public class ClientHandler extends Thread{
 
                     case CLIENT_STATUS:
                         this.gameServer.updateClientStatus(this.ID, Boolean.parseBoolean(clientOutput.readLine()));
+
                         break;
 
                     case CLIENT_MOVEMENT:
@@ -45,9 +46,17 @@ public class ClientHandler extends Thread{
                     default:
                         keepListening = false;
                         System.out.println("SERVER | Connection to client "+ this.ID +" stopped unexpectedly");
+                        socket.close();
                 }
-            } catch (IOException e) {
-                throw new RuntimeException(e);
+            } catch (Exception e) {
+                keepListening = false;
+                System.out.println("SERVER | Connection to client "+ this.ID +" stopped unexpectedly");
+                try {
+                    socket.close();
+                } catch (IOException ex) {
+                    throw new RuntimeException(ex);
+                }
+
             }
         }
     }
