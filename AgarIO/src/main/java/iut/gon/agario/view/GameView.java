@@ -1,5 +1,6 @@
 package iut.gon.agario.view;
 
+import iut.gon.agario.model.Cell;
 import iut.gon.agario.model.GameWorld;
 import iut.gon.agario.model.Player;
 import javafx.scene.layout.Pane;
@@ -19,8 +20,10 @@ public class GameView {
         gamePane.setStyle("-fx-background-color: lightgreen;");
 
         for(Player player : gameWorld.getPlayers()) {
-            Circle playerCircle = player.getRepresentation();
-            gamePane.getChildren().add(playerCircle);
+            for(Cell cell : player.getCells()) {
+                Circle playerCircle = cell.getRepresentation();
+                gamePane.getChildren().add(playerCircle);
+            }
         }
     }
 
@@ -32,8 +35,10 @@ public class GameView {
         gamePane.getChildren().clear();
 
         for(Player player : gameWorld.getPlayers()) {
-            Circle playerCircle = player.getRepresentation();
-            gamePane.getChildren().add(playerCircle);
+            for(Cell cell : player.getCells()) {
+                Circle playerCircle = cell.getRepresentation();
+                gamePane.getChildren().add(playerCircle);
+            }
         }
     }
 }

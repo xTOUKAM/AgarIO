@@ -1,5 +1,6 @@
 package iut.gon.agario.model.specialpellets;
 
+import iut.gon.agario.model.Cell;
 import iut.gon.agario.model.Player;
 import javafx.scene.paint.Color;
 
@@ -11,6 +12,8 @@ public class SpeedBuffPellet extends SpecialPellet {
 
     @Override
     public void applyEffect() {
-        player.setMaxSpeed(player.currentMaxSpeed()*1.33);
+        for(Cell cell : player.getCells()) {
+            //cell.setMaxSpeed(player.currentMaxSpeed() * 1.33);
+        }
     }
 }

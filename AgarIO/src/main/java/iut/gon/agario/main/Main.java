@@ -17,8 +17,15 @@ import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Label;
+import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.SimpleDoubleProperty;
+import javafx.scene.Scene;
+import javafx.scene.canvas.Canvas;
+import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.input.KeyCode;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
@@ -44,6 +51,8 @@ public class Main extends Application {
     private static GameWorld gameWorld;
     private Camera camera;
     private Canvas gameCanvas;
+    private double x;
+    private double y;
 
     public static GameWorld getGameWorld() {
         // Assurez-vous que le GameWorld a bien été initialisé avant de le renvoyer
@@ -127,7 +136,7 @@ public class Main extends Application {
         root.getChildren().add(scoreBox);
 
         // Chat box
-        TextArea chatHistory = new TextArea();
+        /*TextArea chatHistory = new TextArea();
         chatHistory.setPrefHeight(100);
         chatHistory.setDisable(true);
         chatHistory.setLayoutX(10);
@@ -137,14 +146,27 @@ public class Main extends Application {
         TextField chatInput = new TextField();
         chatInput.setLayoutX(10);
         chatInput.setLayoutY(HEIGHT - 30);
-        root.getChildren().add(chatInput);
+        root.getChildren().add(chatInput);*/
 
-        scene.setOnMouseMoved(e -> {
-            gameWorld.move(e.getX(), e.getY(), player);
-        });
+        if(player != null) {
+
+            scene.setOnMouseMoved(e -> {
+                x = e.getX();
+                y = e.getY();
+            });
+
+            scene.setOnKeyPressed(event -> {
+                if (event.getCode() == KeyCode.SPACE) {
+                    player.split();
+                }
+            });
+        }
 
         // Game loop
-        Timeline timeline = new Timeline(new KeyFrame(Duration.millis(33), e -> update(miniMap, scoreBox)));
+        Timeline timeline = new Timeline(new KeyFrame(Duration.millis(33), e -> {
+            update(miniMap, scoreBox);
+            if(player != null)gameWorld.move(x,y,player);
+        }));
         timeline.setCycleCount(Timeline.INDEFINITE);
         timeline.play();  // Si cette ligne n'est pas présente, le jeu ne commence pas
     }
@@ -168,32 +190,43 @@ public class Main extends Application {
             bot.name = Names.getRandomName().name();
             bot.setStrategy(new EatFoodStrategy());
             bots.add(bot);
-            root.getChildren().add(bot.getRepresentation());
-            gameWorld.addPlayer(bot);
+            for (Cell cell : bot.getCells()) {
+                root.getChildren().add(cell.getRepresentation());
+            }
         }
     }
 
     private void spawnPlayer(Pane root) {
-        PlayerFactory playerFactory = new PlayerFactory(gameWorld);
-        Player p = (Player) playerFactory.factory();
-        player = p;
-        p.name = "C MOI WSH";
-        root.getChildren().add(p.getRepresentation());
-        gameWorld.addPlayer(p);
+        player = new Player(WIDTH / 2, HEIGHT / 2, 10, Color.BLUE);
+        for (Cell cell : player.getCells()) {
+            root.getChildren().add(cell.getRepresentation());
+        }
     }
 
     private void update(Canvas miniMap, VBox scoreBox) {
         // Update bots movements - chaque bot prend une nouvelle décision
         for (AIPlayer bot : bots) {
-            bot.makeDecision(gameWorld);  // Appel à la logique de déplacement des bots
+            //bot.makeDecision(gameWorld);  // Appel à la logique de déplacement des bots
         }
 
         // Mettre à jour le monde du jeu
         gameWorld.update();  // Met à jour les collisions et la logique de jeu
+            //bot.makeDecision(gameWorld);
 
-        checkCollisions(player); // Vérifie les collisions entre le joueur et les pastilles
-        checkCollisionsAI(player); // Vérifie les collisions entre le joueur et les bots
-        gameWorld.checkBotCollisions(bots);  // Vérifier les collisions entre bots
+        // Check for collisions between player and pastilles
+        for (Cell cell : player.getCells()){
+            checkCollisions(cell);
+        }
+
+        // Check for collisions between bots and pastilles
+        for (AIPlayer bot : bots) {
+            for(Cell cell : bot.getCells()) {
+                checkCollisions(cell);
+                for(Cell playerCell : player.getCells()) {
+                    checkCollisionsAI(playerCell);
+                }
+            }
+        }
 
         // Redessiner la scène (y compris les positions des bots et du joueur)
         render(miniMap, scoreBox);  // Redessine le jeu et met à jour les positions à chaque tick de la boucle
@@ -219,7 +252,8 @@ public class Main extends Application {
 
         // Redraw all players and bots (on the main game canvas)
         for (Player player : gameWorld.getPlayers()) {
-            gameGC.setFill(player.getColor());
+            for(Cell cell : player.getCells())
+            gameGC.setFill(cell.getColor());
             gameGC.fillOval(player.getX() - player.getMass() / 2, player.getY() - player.getMass() / 2, player.getMass(), player.getMass());
         }
 
@@ -233,38 +267,58 @@ public class Main extends Application {
         }
     }
 
-    public void checkCollisionsAI(Player currentPlayer) {
+
+    private void checkCollisionsAI(Cell playerCell) {
         List<AIPlayer> eatenAI = new ArrayList<>();
         for (AIPlayer aiPlayer : bots) {
-            if (currentPlayer.getRepresentation().getBoundsInParent().intersects(aiPlayer.getRepresentation().getBoundsInParent())) {
-                eatenAI.add(aiPlayer);
-                currentPlayer.setMass(currentPlayer.getMass() + aiPlayer.getMass()); // Augmenter la masse du joueur
+            for (Cell aiCell : aiPlayer.getCells()) {
+                if(gameWorld.canAbsorb(aiCell,playerCell)){
+                    eatenAI.add(aiPlayer);
+                    gameWorld.absorb(aiCell,playerCell);
+                }else if(gameWorld.canAbsorb(playerCell,aiCell)){
+                    gameWorld.absorb(playerCell,aiCell);
+                }
+
+
+                    /*if (playerCell.getRepresentation().getBoundsInParent().intersects(aiCell.getRepresentation().getBoundsInParent())) {
+                        if (gameWorld.canAbsorb(aiCell, playerCell)) {
+                            gameWorld.absorb(aiCell, playerCell);
+                            eatenAI.add(aiPlayer);
+                        } else if (gameWorld.canAbsorb(playerCell, aiCell)) {
+                            gameWorld.absorb(playerCell, aiCell);
+                            Pane pane = (Pane) playerCell.getRepresentation().getParent();
+                            if (pane != null) {
+                                pane.getChildren().remove(playerCell.getRepresentation());
+                            }
+                        }
+                    }*/
             }
         }
 
         // Enlever les bots mangés
         bots.removeAll(eatenAI);
         for (AIPlayer aiPlayer : eatenAI) {
-            if (currentPlayer.getRepresentation().getParent() instanceof Pane parent) {
-                parent.getChildren().remove(aiPlayer.getRepresentation());  // Supprimer le bot de la scène
+            for (Cell aiCell : aiPlayer.getCells()) {
+                if (playerCell.getRepresentation().getParent() instanceof Pane parent) {
+                    parent.getChildren().remove(aiCell.getRepresentation());
+                }
             }
         }
     }
 
-    public void checkCollisions(Player player) {
-        List<Pellet> eatenPellets = new ArrayList<>();
-        for (Pellet pellet : pellets) {
-            if (player.getRepresentation().getBoundsInParent().intersects(pellet.getRepresentation().getBoundsInParent())) {
-                eatenPellets.add(pellet);
-                player.setMass(player.getMass() + 1); // Augmente la masse du joueur lorsqu'il mange une pastille
-            }
+    private void checkCollisions(Cell cell) {
+        List<Pellet> eatenPastilles = new ArrayList<>();
+        for (Pellet pastille : pellets) {
+                if (cell.getRepresentation().getBoundsInParent().intersects(pastille.getRepresentation().getBoundsInParent())) {
+                    eatenPastilles.add(pastille);
+                    cell.setMass(cell.getMass() + 1);
+                }
         }
-        // Enlever les pastilles mangées
-        pellets.removeAll(eatenPellets);
-        for (Pellet pellet : eatenPellets) {
-            if (player.getRepresentation().getParent() instanceof Pane parent) {
-                parent.getChildren().remove(pellet.getRepresentation());  // Supprimer la pastille de la scène
-            }
+        pellets.removeAll(eatenPastilles);
+        for (Pellet pastille : eatenPastilles) {
+                if (cell.getRepresentation().getParent() instanceof Pane parent) {
+                    parent.getChildren().remove(pastille.getRepresentation());
+                }
         }
     }
 
