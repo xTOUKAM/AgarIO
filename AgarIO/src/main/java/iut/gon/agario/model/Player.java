@@ -163,4 +163,13 @@ public class Player implements Entity {
 
         return newCell;
     }
+
+    public char[] getPosition() {
+        String position = "(" + this.getX() + ", " + this.getY() + ")";
+        return position.toCharArray();
+    }
+
+    public char[] getScore() {
+        return String.valueOf(this.getMass()).toCharArray();
+    }
 }

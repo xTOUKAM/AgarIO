@@ -40,10 +40,47 @@ public class Main extends Application {
     private static final int NUM_BOTS = 5;
     private List<Pellet> pellets;
     private CopyOnWriteArrayList<AIPlayer> bots;
-    private Player player;
-    private GameWorld gameWorld;
+    public Player player;
+    private static GameWorld gameWorld;
     private Camera camera;
     private Canvas gameCanvas;
+
+    public static GameWorld getGameWorld() {
+        // Assurez-vous que le GameWorld a bien été initialisé avant de le renvoyer
+        if (gameWorld == null) {
+            initializeGameWorld();  // Initialiser s'il n'est pas encore créé
+        }
+        return gameWorld;
+    }
+
+    public static void initializeGameWorld() {
+        if (gameWorld == null) {
+            // Créer une instance du GameWorld avec la largeur et la hauteur du jeu
+            gameWorld = new GameWorld(WIDTH, HEIGHT);
+
+            // Ajouter des joueurs
+            PlayerFactory playerFactory = new PlayerFactory(gameWorld);
+            Player player = (Player) playerFactory.factory();
+            player.name = "C MOI WSH";  // Vous pouvez modifier le nom du joueur
+            gameWorld.addPlayer(player);
+
+            // Ajouter des bots AI
+            for (int i = 0; i < NUM_BOTS; i++) {
+                AIFactory aiFactory = new AIFactory(gameWorld);
+                AIPlayer bot = (AIPlayer) aiFactory.factory();
+                bot.name = Names.getRandomName().name();  // Vous pouvez donner un nom aléatoire aux bots
+                bot.setStrategy(new EatFoodStrategy());
+                gameWorld.addPlayer(bot);
+            }
+
+            // Ajouter des pastilles
+            for (int i = 0; i < NUM_PASTILLES; i++) {
+                PelletFactory pelletFactory = new PelletFactory(gameWorld);
+                Pellet pellet = (Pellet) pelletFactory.factory();
+                gameWorld.addPellet(pellet);
+            }
+        }
+    }
 
     @Override
     public void start(Stage primaryStage) {
@@ -162,7 +199,7 @@ public class Main extends Application {
         render(miniMap, scoreBox);  // Redessine le jeu et met à jour les positions à chaque tick de la boucle
     }
 
-    private void render(Canvas miniMap, VBox scoreBox) {
+    public void render(Canvas miniMap, VBox scoreBox) {
         // Clear the mini-map
         GraphicsContext miniMapGC = miniMap.getGraphicsContext2D();
         miniMapGC.clearRect(0, 0, miniMap.getWidth(), miniMap.getHeight());
@@ -196,7 +233,7 @@ public class Main extends Application {
         }
     }
 
-    private void checkCollisionsAI(Player currentPlayer) {
+    public void checkCollisionsAI(Player currentPlayer) {
         List<AIPlayer> eatenAI = new ArrayList<>();
         for (AIPlayer aiPlayer : bots) {
             if (currentPlayer.getRepresentation().getBoundsInParent().intersects(aiPlayer.getRepresentation().getBoundsInParent())) {
@@ -214,7 +251,7 @@ public class Main extends Application {
         }
     }
 
-    private void checkCollisions(Player player) {
+    public void checkCollisions(Player player) {
         List<Pellet> eatenPellets = new ArrayList<>();
         for (Pellet pellet : pellets) {
             if (player.getRepresentation().getBoundsInParent().intersects(pellet.getRepresentation().getBoundsInParent())) {

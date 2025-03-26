@@ -21,6 +21,7 @@ public class GameWorld {
     private final DoubleProperty height;
     private final ObservableList<Player> players;
     private final ObservableList<Pellet> pellets;
+    private final ObservableList<AIPlayer> bots;
     private final QuadTree quadTree;
 
     private static final double ABSORPTION_RATIO = 1.33;
@@ -34,6 +35,7 @@ public class GameWorld {
         this.width = new SimpleDoubleProperty(width);
         this.height = new SimpleDoubleProperty(height);
         this.players = FXCollections.observableArrayList();
+        this.bots = FXCollections.observableArrayList();
         this.pellets = FXCollections.observableArrayList();
         this.quadTree = new QuadTree(0, new Boundary(0, 0, width, height));
     }
@@ -150,6 +152,10 @@ public class GameWorld {
             player.setMass(player.getMass() + other.getMass());
             deleteEntity(other);
         }
+    }
+
+    public List<AIPlayer> getBots() {
+        return bots;
     }
 
     public void move(double destX, double destY, Player player) {

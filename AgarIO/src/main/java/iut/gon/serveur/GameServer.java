@@ -1,12 +1,16 @@
 package iut.gon.serveur;
 
+import iut.gon.agario.main.Main;
+import iut.gon.agario.model.Player;
+
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.Scanner;
 
-public class GameServer{
+public class GameServer {
 
     private final LinkedList<ClientInput> clientInputs = new LinkedList<>();
     private final ServerSocket server;
@@ -17,7 +21,7 @@ public class GameServer{
     public GameServer(int port){
         try {
             server = new ServerSocket(port);
-        } catch (IOException e) {throw new RuntimeException(e);}
+        } catch (IOException e) { throw new RuntimeException(e); }
     }
 
 
@@ -27,7 +31,7 @@ public class GameServer{
                 if(clientInput.online){
                     Communication.send(clientInput.printWriter, messageType, data);
                 }
-            }else {
+            } else {
                 Communication.send(clientInput.printWriter, messageType, data);
             }
         }
@@ -40,7 +44,7 @@ public class GameServer{
                     if(clientInput.online){
                         Communication.send(clientInput.printWriter, messageType, data);
                     }
-                }else {
+                } else {
                     Communication.send(clientInput.printWriter, messageType, data);
                 }
             }
@@ -54,7 +58,6 @@ public class GameServer{
             }
         }
     }
-
 
     public void startServer(){
 
@@ -73,14 +76,14 @@ public class GameServer{
                 sendToClientByID(MessageType.SERVER_ID, ""+lastID, lastID, false);
 
                 //send first game state to client for rendering
-                String data = "Initial game state";//TODO get game state from game engine instead
+                String data = "Initial game state"; //TODO get game state from game engine instead
                 sendToClientByID(MessageType.SERVER_INITIAL_GAME_STATE, data, lastID, false);
 
                 //set up socket for client input
                 ClientHandler clientHandler = new ClientHandler(newClientSocket, this, lastID++);
                 clientHandler.start();
             }
-        }catch (IOException e) {
+        } catch (IOException e) {
             throw new RuntimeException(e);
         }
 
@@ -92,35 +95,34 @@ public class GameServer{
 
     public static void launch(int port){
         GameServer gameServer = new GameServer(port);
-        Thread lisenningThread = new Thread(gameServer::startServer);
-        lisenningThread.start();
-
+        Thread listeningThread = new Thread(gameServer::startServer);
+        listeningThread.start();
 
         //TODO LAUNCH GAME ENGINE THREAD
 
-
-        Thread gameClock = new Thread(()->{
+        Thread gameClock = new Thread(() -> {
             try {
                 while (true) {
-                    //TODO use game state from game engine
-                    gameServer.sendToAllClient(MessageType.SERVER_GAME_STATE,"Game data", true);
+                    // TODO: Obtenez l'état du jeu réel à partir du moteur de jeu.
+                    // Vous devrez probablement récupérer les scores de tous les joueurs ici
+                    String gameState = getGameState();  // Méthode qui récupère les informations de l'état du jeu, y compris les scores
+                    gameServer.sendToAllClient(MessageType.SERVER_GAME_STATE, gameState, true);
                     Thread.sleep(1000);
                 }
             } catch (InterruptedException e) {
-                System.out.println(" ");
+                System.out.println("Game engine interrupted.");
             }
         });
         gameClock.start();
 
-
-        //SERVER STOP
+        // SERVER STOP
         Scanner inputReader = new Scanner(System.in);
         while (gameServer.running){
             if(inputReader.hasNext()){
                 String text = inputReader.next();
                 if("stop".equals(text) || "STOP".equals(text)){
                     gameServer.running = false;
-                    //TODO send error message to all client
+                    // Send stop message to all clients
                     gameServer.sendToAllClient(MessageType.SERVER_STOP, "stop", false);
                     System.out.println("SERVER | stopped successfully");
                     System.exit(0);
@@ -129,6 +131,15 @@ public class GameServer{
         }
     }
 
+    public static String getGameState() {
+        StringBuilder gameState = new StringBuilder();
 
+        for (Player player : Main.getGameWorld().getPlayers()) {
+            String playerScore = Arrays.toString(player.getScore());
+            gameState.append("Player ID: ").append(player.getId())
+                    .append(" | Score: ").append(playerScore);
+        }
 
+        return gameState.toString();
+    }
 }
