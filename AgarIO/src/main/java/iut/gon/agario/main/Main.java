@@ -13,6 +13,7 @@ import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.input.KeyCode;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
@@ -39,6 +40,9 @@ public class Main extends Application {
     private GameWorld gameWorld;
     private Camera camera;
     private Canvas gameCanvas;
+    private double x;
+    private double y;
+    private CompositePlayer compositePlayer;
 
     @Override
     public void start(Stage primaryStage) {
@@ -69,7 +73,7 @@ public class Main extends Application {
         spawnPlayer(root);
 
         // Create camera
-        camera = new Camera(player);
+        camera = new Camera(compositePlayer);
 
         // Create mini-map
         Canvas miniMap = new Canvas(CANVAS_WIDTH, CANVAS_HEIGHT);
@@ -84,7 +88,7 @@ public class Main extends Application {
         root.getChildren().add(scoreBox);
 
         // Chat box
-        TextArea chatHistory = new TextArea();
+        /*TextArea chatHistory = new TextArea();
         chatHistory.setPrefHeight(100);
         chatHistory.setDisable(true);
         chatHistory.setLayoutX(10);
@@ -94,14 +98,28 @@ public class Main extends Application {
         TextField chatInput = new TextField();
         chatInput.setLayoutX(10);
         chatInput.setLayoutY(HEIGHT - 30);
-        root.getChildren().add(chatInput);
+        root.getChildren().add(chatInput);*/
 
         scene.setOnMouseMoved(e -> {
-            gameWorld.move(e.getX(), e.getY(), player);
+            x = e.getX();
+            y = e.getY();
+        });
+
+        scene.setOnKeyPressed(e ->{
+            if (e.getCode() == KeyCode.SPACE) {
+                compositePlayer.split();
+                List<Player> newPlayers = compositePlayer.getPlayers();
+                for (Player player : newPlayers) {
+                    root.getChildren().add(player.getRepresentation());
+                }
+            }
         });
 
         // Game loop
-        Timeline timeline = new Timeline(new KeyFrame(Duration.millis(20), e -> update(miniMap, scoreBox)));
+        Timeline timeline = new Timeline(new KeyFrame(Duration.millis(20), e -> {
+            update(miniMap, scoreBox);
+            compositePlayer.update();
+            gameWorld.move(x,y,player);}));
         timeline.setCycleCount(Timeline.INDEFINITE);
         timeline.play();
     }
@@ -132,27 +150,27 @@ public class Main extends Application {
     }
 
     private void spawnPlayer(Pane root) {
-        player = new Player(WIDTH / 2, HEIGHT / 2, 30, Color.BLUE);
+        Player player = new Player(WIDTH / 2, HEIGHT / 2, 30, Color.BLUE);
+        compositePlayer = new CompositePlayer(player, gameWorld);
         root.getChildren().add(player.getRepresentation());
-        gameWorld.addPlayer(player);
     }
 
     private void update(Canvas miniMap, VBox scoreBox) {
-        // Update bots movements
+
         for (AIPlayer bot : bots) {
             bot.makeDecision(gameWorld);
         }
+        checkCollisions(compositePlayer);
 
-        // Check for collisions between player and pastilles
-        checkCollisions(player);
-
-        // Check for collisions between bots and pastilles
-        for (AIPlayer bot : bots) {
-            checkCollisions(bot);
-            checkCollisionsAI(player);
+        for(AIPlayer bot : bots) {
+            CompositePlayer compositeBot = new CompositePlayer(bot, gameWorld);
+            checkCollisions(compositeBot);
+            checkCollisionsAI(compositePlayer);
         }
 
+
         camera.update();
+        compositePlayer.move(x,y);
         render(miniMap, scoreBox);
     }
 
@@ -177,35 +195,44 @@ public class Main extends Application {
         List<Player> topPlayers = leaderboard.getLeaderboard(10);
     }
 
-    private void checkCollisionsAI(Player currentPlayer) {
+    private void checkCollisionsAI(CompositePlayer compositePlayer) {
         List<AIPlayer> eatenAI = new ArrayList<>();
-        for(AIPlayer aiPlayer : bots) {
-            if(currentPlayer.getRepresentation().getBoundsInParent().intersects(aiPlayer.getRepresentation().getBoundsInParent())) {
-                eatenAI.add(aiPlayer);
-                currentPlayer.setMass(currentPlayer.getMass() + aiPlayer.getMass());
+        for (Player player : compositePlayer.getPlayers()) {
+            for (AIPlayer aiPlayer : bots) {
+                if (player.getRepresentation().getBoundsInParent().intersects(aiPlayer.getRepresentation().getBoundsInParent())) {
+                    eatenAI.add(aiPlayer);
+                    player.setMass(player.getMass() + aiPlayer.getMass());
+                }
             }
         }
 
         bots.removeAll(eatenAI);
         for(AIPlayer aiPlayer : eatenAI) {
-            if(currentPlayer.getRepresentation().getParent() instanceof Pane parent) {
-                parent.getChildren().remove(aiPlayer.getRepresentation());
+            for (Player player : compositePlayer.getPlayers()) {
+                if (player.getRepresentation().getParent() instanceof Pane parent) {
+                    parent.getChildren().remove(aiPlayer.getRepresentation());
+                }
             }
         }
     }
 
-    private void checkCollisions(Player player) {
+    private void checkCollisions(CompositePlayer compositePlayer) {
         List<Pastille> eatenPastilles = new ArrayList<>();
-        for (Pastille pastille : pastilles) {
-            if (player.getRepresentation().getBoundsInParent().intersects(pastille.getRepresentation().getBoundsInParent())) {
-                eatenPastilles.add(pastille);
-                player.setMass(player.getMass() + 1); // Increase player mass when eating a pastille
+        for (Player player : compositePlayer.getPlayers()){
+            for (Pastille pastille : pastilles) {
+                if (player.getRepresentation().getBoundsInParent().intersects(pastille.getRepresentation().getBoundsInParent())) {
+                    eatenPastilles.add(pastille);
+                    player.setMass(player.getMass() + 1);
+                }
             }
         }
+
         pastilles.removeAll(eatenPastilles);
         for (Pastille pastille : eatenPastilles) {
-            if (player.getRepresentation().getParent() instanceof Pane parent) {
-                parent.getChildren().remove(pastille.getRepresentation());
+            for (Player player : compositePlayer.getPlayers()) {
+                if (player.getRepresentation().getParent() instanceof Pane parent) {
+                    parent.getChildren().remove(pastille.getRepresentation());
+                }
             }
         }
     }

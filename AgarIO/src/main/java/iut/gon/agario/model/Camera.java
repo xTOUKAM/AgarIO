@@ -4,10 +4,10 @@ import iut.gon.agario.main.Main;
 import javafx.geometry.Rectangle2D;
 
 public class Camera {
-    private Player player;
+    private CompositePlayer player;
     private double zoom;
 
-    public Camera(Player player) {
+    public Camera(CompositePlayer player) {
         this.player = player;
         this.zoom = calculateZoom(player.getMass());
     }
