@@ -39,7 +39,7 @@ public class Main extends Application {
     private static final int NUM_PASTILLES = 100;
     private static final int NUM_BOTS = 5;
     private List<Pellet> pellets;
-    private List<AIPlayer> bots;
+    private CopyOnWriteArrayList<AIPlayer> bots;
     private Player player;
     private GameWorld gameWorld;
     private Camera camera;
@@ -59,7 +59,7 @@ public class Main extends Application {
 
         // Initialize game elements
         pellets = new ArrayList<>();
-        bots = new ArrayList<>();
+        bots = new CopyOnWriteArrayList<>();
 
         // Create game canvas
         gameCanvas = new Canvas(WIDTH, HEIGHT);

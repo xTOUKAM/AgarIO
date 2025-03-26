@@ -11,6 +11,7 @@ import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
@@ -66,30 +67,38 @@ public class GameWorld {
     }
 
     public void update() {
-        for (Player player : players) {
+        List<Player> toRemovePlayers = new ArrayList<>();
+        List<Pellet> toRemovePellets = new ArrayList<>();
+
+        Iterator<Player> playerIterator = players.iterator();  // Iterator for Player
+        while (playerIterator.hasNext()) {
+            Player player = playerIterator.next();
             List<Entity> nearbyEntities = quadTree.retrieve((Entity) player);
+
             for (Entity entity : nearbyEntities) {
                 if (entity instanceof Pellet pellet) {
                     if (player.getRepresentation().getBoundsInParent().intersects(pellet.getRepresentation().getBoundsInParent())) {
                         player.setMass(player.getMass() + pellet.getRadius());
-                        removePellet(pellet);
-                    }
-                } else if(entity instanceof AIPlayer ai){
-                    if (player != ai && player.getRepresentation().getBoundsInParent().intersects(ai.getRepresentation().getBoundsInParent())) {
-                        if (player.getMass() >= ai.getMass() * 1.33) {
-                            player.setMass(player.getMass() + ai.getMass());
-                            removePlayer(ai);
-                        }
+                        toRemovePellets.add(pellet);
                     }
                 } else if (entity instanceof Player otherPlayer) {
                     if (player != otherPlayer && player.getRepresentation().getBoundsInParent().intersects(otherPlayer.getRepresentation().getBoundsInParent())) {
                         if (player.getMass() >= otherPlayer.getMass() * 1.33) {
                             player.setMass(player.getMass() + otherPlayer.getMass());
-                            removePlayer(otherPlayer);
+                            toRemovePlayers.add(otherPlayer);
                         }
                     }
                 }
             }
+        }
+
+        // Remove players and pellets after iteration
+        for (Player player : toRemovePlayers) {
+            removePlayer(player);
+        }
+
+        for (Pellet pellet : toRemovePellets) {
+            removePellet(pellet);
         }
     }
 
@@ -113,11 +122,11 @@ public class GameWorld {
         return quadTree;
     }
 
-    public void deleteEntity(Entity entity){
-        if (entity instanceof Player){
+    public void deleteEntity(Entity entity) {
+        if (entity instanceof Player) {
             players.remove(entity);
             entity = null;
-        } else if (entity instanceof Pellet){
+        } else if (entity instanceof Pellet) {
             pellets.remove(entity);
             entity = null;
             PelletFactory fabPast = new PelletFactory(this);
@@ -125,17 +134,15 @@ public class GameWorld {
         }
     }
 
-    public double overlap(Entity other, Player player){
+    public double overlap(Entity other, Player player) {
         double distance = Math.sqrt(Math.pow(player.getX() - other.getX(), 2) + Math.pow(player.getY() - other.getY(), 2));
         double combinedRadius = player.calculateRadius(player.getMass()) + other.calculateRadius(player.getMass());
         return (combinedRadius - distance) / combinedRadius;
     }
 
-    public boolean canAbsorb(Entity other, Player player){
-        if((player.getId() == other.getId()) && (overlap(other,player) >= MERGE_OVERLAP)) {
-            return true;
-        }
-        return (player.getMass() >= other.getMass() * ABSORPTION_RATIO) && (overlap(other,player) >= MERGE_OVERLAP);
+    public boolean canAbsorb(Entity other, Player player) {
+        return (player.getId() == other.getId() && overlap(other, player) >= MERGE_OVERLAP) ||
+                (player.getMass() >= other.getMass() * ABSORPTION_RATIO && overlap(other, player) >= MERGE_OVERLAP);
     }
 
     public void absorb(Entity other, Player player) {
@@ -145,18 +152,19 @@ public class GameWorld {
         }
     }
 
-    public void move(double destX, double destY, Player player){
+    public void move(double destX, double destY, Player player) {
         double directionX = destX - player.getX();
         double directionY = destY - player.getY();
-        double distance = Math.sqrt(Math.pow(directionX,2)+Math.pow(directionY,2));
+        double distance = Math.sqrt(Math.pow(directionX, 2) + Math.pow(directionY, 2));
 
-        if(distance == 0) {
+        if (distance == 0) {
             player.setSpeed(MIN_SPEED);
         } else {
             double maxSpeed = player.currentMaxSpeed() / Math.sqrt(player.getMass());
             player.setDirectionX(directionX / distance);
             player.setDirectionY(directionY / distance);
-            if(player.getSpeed() > player.currentMaxSpeed()){
+
+            if (player.getSpeed() > player.currentMaxSpeed()) {
                 long elapsedTime = System.currentTimeMillis() - player.GetLastSpeedBoostTime();
                 if (elapsedTime >= SPEED_DECAY_DURATION) {
                     player.setSpeed(maxSpeed);
