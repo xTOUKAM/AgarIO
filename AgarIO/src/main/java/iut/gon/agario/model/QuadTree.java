@@ -7,10 +7,10 @@ public class QuadTree {
     private static final int MAX_OBJECTS = 10;
     private static final int MAX_LEVELS = 5;
 
-    private int level;
-    private List<Entity> objects;
-    private Boundary bounds;
-    private QuadTree[] nodes;
+    private final int level;
+    private final List<Entity> objects;
+    private final Boundary bounds;
+    private final QuadTree[] nodes;
 
     public QuadTree(int level, Boundary bounds) {
         this.level = level;

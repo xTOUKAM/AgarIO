@@ -1,20 +1,21 @@
 package iut.gon.serveur;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import iut.gon.client.MessageType;
+
+import java.io.*;
 import java.net.Socket;
-import java.nio.charset.StandardCharsets;
 
 public class ClientHandler extends Thread{
 
-    private final OutputStream fromClientStream;
-    private final InputStream toClientStream;
+    private final BufferedReader clientOutput;
+    private final int ID;
+    private final GameServer gameServer;
 
-    public ClientHandler(Socket socket){
+    public ClientHandler(Socket socket, GameServer gameServer, int ID){
+        this.gameServer = gameServer;
+        this.ID = ID;
         try {
-            fromClientStream = socket.getOutputStream();
-            toClientStream = socket.getInputStream();
+            clientOutput = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -22,7 +23,33 @@ public class ClientHandler extends Thread{
     }
 
     public void run(){
+        boolean keepListening = true;
+        while(keepListening) {
+            try {
+                switch (MessageType.values()[Integer.parseInt(clientOutput.readLine())]){
 
+                    case CLIENT_STATUS:
+                        this.gameServer.updateClientStatus(this.ID, Boolean.parseBoolean(clientOutput.readLine()));
+                        break;
+
+                    case CLIENT_MOVEMENT:
+                        //TODO send data to game engine
+                        clientOutput.readLine();
+                        break;
+
+                    case CLIENT_CHAT_MESSAGE:
+                        //TODO update chat with new message
+                        clientOutput.readLine();
+                        break;
+
+                    default:
+                        keepListening = false;
+                        System.out.println("SERVER | Connection to client "+ this.ID +" stopped unexpectedly");
+                }
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
 
 }

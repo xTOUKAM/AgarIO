@@ -10,14 +10,13 @@ import java.util.Scanner;
 
 public class GameServer{
 
-    private final LinkedList<PrintWriter> clientInputs;
-    public ServerSocket server;
+    private final LinkedList<Client> clients = new LinkedList<>();
+    private final ServerSocket server;
     private int lastID = 1;
-    boolean running = true;
+    private boolean running = true;
 
 
     public GameServer(int port){
-        clientInputs = new LinkedList<>();
         try {
             server = new ServerSocket(port);
         } catch (IOException e) {throw new RuntimeException(e);}
@@ -25,10 +24,30 @@ public class GameServer{
 
 
     public void sendToAllClient(MessageType messageType, String data){
-        for(PrintWriter clientInput: clientInputs){
-            clientInput.write(messageType.ordinal()+"\n");
-            clientInput.write(data +"\n");
-            clientInput.flush();
+        for(Client client: clients){
+            if(client.online){
+                client.printWriter.write(messageType.ordinal()+"\n");
+                client.printWriter.write(data +"\n");
+                client.printWriter.flush();
+            }
+        }
+    }
+
+    public void sendToClientByID(MessageType messageType, String data, int ID){
+        for(Client client: clients){
+            if(client.online && client.ID == ID){
+                client.printWriter.write(messageType.ordinal()+"\n");
+                client.printWriter.write(data +"\n");
+                client.printWriter.flush();
+            }
+        }
+    }
+
+    public void updateClientStatus(int ID, boolean status){
+        for(Client client: clients){
+            if(client.ID == ID){
+                client.online = status;
+            }
         }
     }
 
@@ -40,18 +59,19 @@ public class GameServer{
             while(running){
 
                 Socket newClientSocket = server.accept();
-                System.out.println("SERVER | new connection "+ newClientSocket.toString());
+                System.out.println("SERVER | new connection ID => "+this.lastID+ " SOCKET => " +newClientSocket.toString());
                 PrintWriter clientOutput = new PrintWriter(newClientSocket.getOutputStream(), false);
-                synchronized (this.clientInputs){
-                    this.clientInputs.add(clientOutput);
+                synchronized (this.clients){
+                    this.clients.add(new Client(lastID, clientOutput));
                 }
+
                 //send id to client
                 clientOutput.write("0\n");
-                clientOutput.write(lastID++ + "\n");
+                clientOutput.write(lastID + "\n");
                 clientOutput.flush(); // Send off the data
 
-                //set up socket for the game
-                ClientHandler clientHandler = new ClientHandler(newClientSocket);
+                //set up socket for client input
+                ClientHandler clientHandler = new ClientHandler(newClientSocket, this, lastID++);
                 clientHandler.start();
             }
         }catch (IOException e) {
@@ -74,7 +94,7 @@ public class GameServer{
             try {
                 while (true) {
                     //TODO use game state from game engine
-                    gameServer.sendToAllClient(MessageType.GAME_STATE,"Game data");
+                    gameServer.sendToAllClient(MessageType.SERVER_GAME_STATE,"Game data");
                     Thread.sleep(1000);
                 }
             } catch (InterruptedException e) {
