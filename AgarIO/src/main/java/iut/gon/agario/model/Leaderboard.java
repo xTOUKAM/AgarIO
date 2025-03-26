@@ -11,7 +11,7 @@ public class Leaderboard {
 
     public Leaderboard(GameWorld game) {
         this.game = game;
-        sortedPlayers = new ArrayList<Player>();
+        sortedPlayers = new ArrayList<>();
     }
 
     public void topPlayers(int topN) {

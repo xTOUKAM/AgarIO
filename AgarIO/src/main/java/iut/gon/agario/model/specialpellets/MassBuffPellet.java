@@ -1,12 +1,12 @@
-package iut.gon.agario.model.pastilles_speciales;
+package iut.gon.agario.model.specialpellets;
 
 import iut.gon.agario.model.Player;
 import javafx.scene.paint.Color;
 
-public class PastilleMassBoost extends PastilleSpeciale{
+public class MassBuffPellet extends SpecialPellet {
 
 
-    public PastilleMassBoost(double startX, double startY, double startRadius, Color color, Player player) {
+    public MassBuffPellet(double startX, double startY, double startRadius, Color color, Player player) {
         super(startX, startY, startRadius, color, player);
     }
 

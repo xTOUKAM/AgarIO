@@ -1,15 +1,15 @@
-package iut.gon.agario.model.fabrique;
+package iut.gon.agario.model.factory;
 
 import iut.gon.agario.model.Entity;
 import iut.gon.agario.model.GameWorld;
 
-public abstract class Fabrique {
+public abstract class Factory {
 
     private GameWorld gameWorld;
 
-    public Fabrique(GameWorld gameWorld) {
+    public Factory(GameWorld gameWorld) {
         this.gameWorld = gameWorld;
     }
 
-    public abstract Entity fabrique();
+    public abstract Entity factory();
 }

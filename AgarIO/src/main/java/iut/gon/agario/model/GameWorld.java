@@ -1,7 +1,6 @@
 package iut.gon.agario.model;
 
-import iut.gon.agario.model.*;
-import iut.gon.agario.model.fabrique.FabriquePastille;
+import iut.gon.agario.model.factory.PelletFactory;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.collections.FXCollections;
@@ -17,7 +16,7 @@ public class GameWorld {
     private final DoubleProperty width;
     private final DoubleProperty height;
     private final ObservableList<Player> players;
-    private final ObservableList<Pastille> pastilles;
+    private final ObservableList<Pellet> pellets;
     private final QuadTree quadTree;
 
     private static final double ABSORPTION_RATIO = 1.33;
@@ -31,7 +30,7 @@ public class GameWorld {
         this.width = new SimpleDoubleProperty(width);
         this.height = new SimpleDoubleProperty(height);
         this.players = FXCollections.observableArrayList();
-        this.pastilles = FXCollections.observableArrayList();
+        this.pellets = FXCollections.observableArrayList();
         this.quadTree = new QuadTree(0, new Boundary(0, 0, width, height));
     }
 
@@ -45,32 +44,32 @@ public class GameWorld {
         quadTree.remove((Entity) player);
     }
 
-    public void addPastille(Pastille pastille) {
-        pastilles.add(pastille);
-        quadTree.insert((Entity) pastille);
+    public void addPastille(Pellet pellet) {
+        pellets.add(pellet);
+        quadTree.insert((Entity) pellet);
     }
 
-    public void removePastille(Pastille pastille) {
-        pastilles.remove(pastille);
-        quadTree.remove((Entity) pastille);
+    public void removePastille(Pellet pellet) {
+        pellets.remove(pellet);
+        quadTree.remove((Entity) pellet);
     }
 
     public List<Player> getPlayers() {
         return new CopyOnWriteArrayList<>(players);
     }
 
-    public List<Pastille> getPastilles() {
-        return new CopyOnWriteArrayList<>(pastilles);
+    public List<Pellet> getPastilles() {
+        return new CopyOnWriteArrayList<>(pellets);
     }
 
     public void update() {
         for (Player player : players) {
             List<Entity> nearbyEntities = quadTree.retrieve((Entity) player);
             for (Entity entity : nearbyEntities) {
-                if (entity instanceof Pastille pastille) {
-                    if (player.getRepresentation().getBoundsInParent().intersects(pastille.getRepresentation().getBoundsInParent())) {
-                        player.setMass(player.getMass() + pastille.getRadius());
-                        removePastille(pastille);
+                if (entity instanceof Pellet pellet) {
+                    if (player.getRepresentation().getBoundsInParent().intersects(pellet.getRepresentation().getBoundsInParent())) {
+                        player.setMass(player.getMass() + pellet.getRadius());
+                        removePastille(pellet);
                     }
                 } else if (entity instanceof Player otherPlayer) {
                     if (player != otherPlayer && player.getRepresentation().getBoundsInParent().intersects(otherPlayer.getRepresentation().getBoundsInParent())) {
@@ -104,11 +103,11 @@ public class GameWorld {
         if (entity instanceof Player){
             players.remove(entity);
             entity = null;
-        } else if (entity instanceof Pastille){
-            pastilles.remove(entity);
+        } else if (entity instanceof Pellet){
+            pellets.remove(entity);
             entity = null;
-            FabriquePastille fabPast = new FabriquePastille(this);
-            pastilles.add((Pastille) fabPast.fabrique());
+            PelletFactory fabPast = new PelletFactory(this);
+            pellets.add((Pellet) fabPast.factory());
         }
     }
 

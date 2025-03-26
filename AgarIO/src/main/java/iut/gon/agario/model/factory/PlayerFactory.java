@@ -1,23 +1,24 @@
-package iut.gon.agario.model.fabrique;
+package iut.gon.agario.model.factory;
 
 import iut.gon.agario.model.Entity;
 import iut.gon.agario.model.GameWorld;
-import iut.gon.agario.model.Pastille;
+import iut.gon.agario.model.Player;
 import javafx.scene.paint.Color;
 
 import java.util.Random;
 
-public class FabriquePastille extends Fabrique{
+public class PlayerFactory extends Factory {
+
 
     private GameWorld gameWorld;
 
-    public FabriquePastille(GameWorld gameWorld){
+    public PlayerFactory(GameWorld gameWorld) {
         super(gameWorld);
         this.gameWorld = gameWorld;
     }
 
     @Override
-    public Entity fabrique() {
+    public Entity factory() {
         Random rand = new Random();
         double X = rand.nextDouble(gameWorld.getWidth());
         double Y = rand.nextDouble(gameWorld.getWidth());
@@ -25,6 +26,6 @@ public class FabriquePastille extends Fabrique{
         int g = rand.nextInt(255);
         int b = rand.nextInt(255);
         Color color = Color.rgb(r,g,b);
-        return (Entity) new Pastille(X,Y,50, color);
+        return (Entity) new Player(X,Y,10, color);
     }
 }
