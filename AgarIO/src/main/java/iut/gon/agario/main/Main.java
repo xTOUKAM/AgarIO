@@ -3,28 +3,16 @@ package iut.gon.agario.main;
 import iut.gon.agario.model.*;
 import iut.gon.agario.model.AI.AIPlayer;
 import iut.gon.agario.model.AI.EatFoodStrategy;
-import iut.gon.agario.model.AI.RandomMovementStrategy;
 import iut.gon.agario.model.factory.AIFactory;
 import iut.gon.agario.model.factory.PelletFactory;
 import iut.gon.agario.model.factory.PlayerFactory;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Application;
-import javafx.beans.binding.Bindings;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Label;
-import javafx.beans.property.DoubleProperty;
-import javafx.beans.property.SimpleDoubleProperty;
-import javafx.scene.Scene;
-import javafx.scene.canvas.Canvas;
-import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.control.ContentDisplay;
-import javafx.scene.control.TextArea;
-import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
@@ -191,7 +179,7 @@ public class Main extends Application {
             bots.add(bot);
             for (Cell cell : bot.getCells()) {
                 root.getChildren().add(cell.getRepresentation());
-                root.getChildren().add(cell.getRepresentationPerimettre());
+                root.getChildren().add(cell.getRepresentationPerimeter());
             }
         }
     }
@@ -200,7 +188,7 @@ public class Main extends Application {
         player = new Player(WIDTH / 2, HEIGHT / 2, 10, Color.BLUE);
         for (Cell cell : player.getCells()) {
             root.getChildren().add(cell.getRepresentation());
-            root.getChildren().add(cell.getRepresentationPerimettre());
+            root.getChildren().add(cell.getRepresentationPerimeter());
         }
     }
 
@@ -340,7 +328,7 @@ public class Main extends Application {
                         for (Cell aiCell : aiPlayer.getCells()) {
                             if (cell.getRepresentation().getParent() instanceof Pane parent) {
                                 parent.getChildren().remove(aiCell.getRepresentation());
-                                parent.getChildren().remove(aiCell.getRepresentationPerimettre());
+                                parent.getChildren().remove(aiCell.getRepresentationPerimeter());
                             }
                         }
                     }

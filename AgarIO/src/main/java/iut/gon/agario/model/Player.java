@@ -46,7 +46,7 @@ public class Player implements Entity {
 
                     if (cell.getRepresentation().getParent() instanceof Pane parent) {
                         parent.getChildren().add(newCell1.getRepresentation());
-                        parent.getChildren().add(newCell1.getRepresentationPerimettre());
+                        parent.getChildren().add(newCell1.getRepresentationPerimeter());
                     }
                     this.cells.add(newCell1);
                 }

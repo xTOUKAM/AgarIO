@@ -10,7 +10,6 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 
-import javax.lang.model.element.PackageElement;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -158,7 +157,7 @@ public class GameWorld {
         if (((overlap(other, cell) >= MERGE_OVERLAP && cell.getMass() >= other.getMass() * ABSORPTION_RATIO) &&
                 other.getPlayer() != cell.getPlayer()) ||
                 (overlap(other, cell) >= MERGE_OVERLAP && other.getPlayer() == cell.getPlayer() &&
-                (System.currentTimeMillis()-cell.getMergeTimer())>=10000 && (System.currentTimeMillis()-other.getMergeTimer())>=10000)) {
+                (System.currentTimeMillis()-cell.getMergeTimer())>= (MIN_TIME_SPLIT + (cell.getMass() / 100)) && (System.currentTimeMillis()-other.getMergeTimer())>=(MIN_TIME_SPLIT + (other.getMass() / 100)))) {
             return true;
         }
         return false;
@@ -181,7 +180,7 @@ public class GameWorld {
                 cell.setMass(cell.getMass() + other1.getMass());
                 if (cell.getRepresentation().getParent() instanceof Pane parent) {
                     parent.getChildren().remove(other1.getRepresentation());
-                    parent.getChildren().remove(other1.getRepresentationPerimettre());
+                    parent.getChildren().remove(other1.getRepresentationPerimeter());
                 }
                 deleteEntity(other1, other1.getPlayer());
             }
@@ -230,8 +229,8 @@ public class GameWorld {
                     double minDist = cell.calculateRadius(cell.getMass() + otherCell.calculateRadius(otherCell.getMass()));
 
                     if(distBetween < minDist &&
-                            (System.currentTimeMillis()-cell.getMergeTimer()) < MIN_TIME_SPLIT &&
-                            (System.currentTimeMillis()-otherCell.getMergeTimer()) < MIN_TIME_SPLIT) {
+                            (System.currentTimeMillis()-cell.getMergeTimer()) < (MIN_TIME_SPLIT + (cell.getMass() / 100)) &&
+                            (System.currentTimeMillis()-otherCell.getMergeTimer()) < (MIN_TIME_SPLIT + (otherCell.getMass() / 100))) {
                         double overlap = minDist - distBetween;
                         double pushX = (newX - otherCell.getX()) / distBetween * overlap;
                         double pushY = (newY - otherCell.getY()) / distBetween * overlap;

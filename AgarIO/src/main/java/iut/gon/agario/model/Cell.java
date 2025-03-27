@@ -4,10 +4,8 @@ import javafx.beans.binding.Bindings;
 import javafx.beans.binding.DoubleBinding;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
-import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
-import iut.gon.agario.main.Main;
 
 public class Cell implements Entity {
     private final int id;
@@ -33,7 +31,7 @@ public class Cell implements Entity {
         this.representation = new Circle(calculateRadius(startMass), Color.BLACK);
         this.representationPerimettre = new Circle(calculatePerimeter(startMass), this.color);
         bindProperties();
-        this.speed = initialCurrentMaxSpeed() / Math.sqrt(this.getMass());
+        this.speed = initialCurrentMaxSpeed() / (Math.sqrt(this.getMass()));
         this.player = player;
     }
 
@@ -48,11 +46,11 @@ public class Cell implements Entity {
 
         this.representationPerimettre.centerXProperty().bind(this.x);
         this.representationPerimettre.centerYProperty().bind(this.y);
-        DoubleBinding PerimetterBinding = Bindings.createDoubleBinding(
+        DoubleBinding PerimetersBinding = Bindings.createDoubleBinding(
                 () -> calculatePerimeter(this.mass.get()),
                 this.mass
         );
-        this.representationPerimettre.radiusProperty().bind(PerimetterBinding);
+        this.representationPerimettre.radiusProperty().bind(PerimetersBinding);
     }
 
     public Player getPlayer(){
@@ -63,7 +61,7 @@ public class Cell implements Entity {
         return representation;
     }
 
-    public Circle getRepresentationPerimettre() { return representationPerimettre; }
+    public Circle getRepresentationPerimeter() { return representationPerimettre; }
 
     @Override
     public double calculateRadius(double mass) {
@@ -143,7 +141,7 @@ public class Cell implements Entity {
     }
 
     public double initialCurrentMaxSpeed() {
-        return 100.0 * Math.pow((10 / this.getMass()), 0.005);
+        return 50 * Math.pow((10 / this.getMass()), 0.1);
     }
 
     @Override
