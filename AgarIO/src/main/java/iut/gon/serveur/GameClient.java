@@ -1,7 +1,15 @@
 package iut.gon.serveur;
 
 import iut.gon.renderer.GameRenderer;
+import iut.gon.renderer.GameRendererTest;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
+import javafx.application.Application;
+import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
+import javafx.scene.layout.StackPane;
+import javafx.stage.Stage;
+import javafx.util.Duration;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -16,6 +24,7 @@ public class GameClient {
     private final BufferedReader serverOutput;
     private final PrintWriter serverInput;
     private GameRenderer gameRenderer;
+    private GameRendererTest gameRendererTest;
 
 
     public GameClient(String serverAddress, int serverPort){
@@ -74,7 +83,6 @@ public class GameClient {
         GameClient.launch("127.0.0.1", 1234);
     }
 
-
     public static void launch(String serverAddress, int serverPort){
         GameClient gameClient = new GameClient(serverAddress, serverPort);
         Canvas clientGameDisplay = new Canvas();
@@ -83,8 +91,7 @@ public class GameClient {
         gameClient.serverMessageHandler();
 
         gameClient.gameRenderer = new GameRenderer(clientGameDisplay);
-        gameClient.gameRenderer.run();
+        gameClient.gameRenderer.start();
     }
-
 
 }

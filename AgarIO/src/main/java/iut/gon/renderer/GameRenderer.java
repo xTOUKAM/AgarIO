@@ -4,6 +4,7 @@ import iut.gon.agario.model.Camera;
 import iut.gon.agario.model.GameWorld;
 import iut.gon.agario.model.Pellet;
 import iut.gon.agario.model.Player;
+import javafx.application.Application;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
