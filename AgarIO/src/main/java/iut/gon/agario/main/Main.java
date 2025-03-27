@@ -41,7 +41,7 @@ public class Main extends Application {
 
     public static final int CANVAS_WIDTH = 200;
     public static final int CANVAS_HEIGHT = 200;
-    public static final int WIDTH = 1280;
+    public static final int WIDTH = 2000;
     public static final int HEIGHT = 720;
     private static final int NUM_PASTILLES = 100;
     private static final int NUM_BOTS = 5;
@@ -216,6 +216,14 @@ public class Main extends Application {
         // Check for collisions between player and pastilles
         for (Cell cell : player.getCells()){
             checkCollisions(cell);
+        }
+
+        for (Cell cell : player.getCells()){
+            for(Cell cell2 : player.getCells()) {
+                if(cell != cell2){
+                    gameWorld.absorb(cell,cell2);
+                }
+            }
         }
 
         // Check for collisions between bots and pastilles

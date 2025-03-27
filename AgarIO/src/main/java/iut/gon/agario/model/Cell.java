@@ -21,6 +21,8 @@ public class Cell implements Entity {
     private long lastSpeedBoostTime;
     private Player player;
 
+    private long mergeTimer;
+
     public Cell(int id, double startX, double startY, double startMass, Color color,Player player) {
         this.id = id;
         this.x = new SimpleDoubleProperty(startX);
@@ -125,7 +127,7 @@ public class Cell implements Entity {
     }
 
     public double initialCurrentMaxSpeed() {
-        return 100.0 * Math.pow((10 / this.getMass()), 0.3);
+        return 100.0 * Math.pow((10 / this.getMass()), 0.005);
     }
 
     @Override
@@ -144,6 +146,14 @@ public class Cell implements Entity {
 
     public void GiveSpeedBoost(){
         lastSpeedBoostTime = System.currentTimeMillis();
+    }
+
+    public void setMergeTimer(){
+        mergeTimer = System.currentTimeMillis();
+    }
+
+    public long getMergeTimer(){
+        return this.mergeTimer;
     }
 }
 
