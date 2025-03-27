@@ -33,16 +33,21 @@ public class Player implements Entity {
 
     public void split() {
         if (cells.size() > 0) {
-            Cell cell = cells.get(0);
-            if (cell.getMass() > 20) {
-                double newMass = cell.getMass() / 2;
-                cell.setMass(newMass);
-                Cell newCell1 = new Cell(idCounter++, cell.getX()+50, cell.getY()+50, newMass, color, this);
-                newCell1.GiveSpeedBoost();
-                if(cell.getRepresentation().getParent() instanceof Pane parent) {
-                   parent.getChildren().add(newCell1.getRepresentation());
+            List<Cell> originalCells = new ArrayList<>(cells);
+            for(Cell cell : originalCells) {
+                if (cell.getMass() > 10) {
+                    double newMass = cell.getMass() / 2;
+                    cell.setMass(newMass);
+                    Cell newCell1 = new Cell(idCounter++, cell.getX() + 100, cell.getY() + 100, newMass, color, this);
+                    newCell1.GiveSpeedBoost();
+                    newCell1.setSpeed(cell.getSpeed()*10);
+                    newCell1.setMergeTimer();
+                    cell.setMergeTimer();
+                    if (cell.getRepresentation().getParent() instanceof Pane parent) {
+                        parent.getChildren().add(newCell1.getRepresentation());
+                    }
+                    this.cells.add(newCell1);
                 }
-                this.cells.add(newCell1);
             }
         }
     }

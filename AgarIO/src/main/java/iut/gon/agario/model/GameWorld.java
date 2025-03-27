@@ -26,7 +26,7 @@ public class GameWorld {
 
     private static final double ABSORPTION_RATIO = 1.33;
     private static final double MERGE_OVERLAP = 0.33;
-    private static final double DECAY_FACTOR = 5.0;
+    private static final double DECAY_FACTOR = 6;
     private static final long SPEED_DECAY_DURATION = 1500;
     private static final long CONTROL_RADIUS = 1000;
     private static final double MIN_SPEED = 0;
@@ -153,7 +153,9 @@ public class GameWorld {
     }
 
     public boolean canAbsorb(Cell other, Cell cell) {
-        if (overlap(other, cell) >= MERGE_OVERLAP && cell.getMass() >= other.getMass() * ABSORPTION_RATIO) {
+        if ((overlap(other, cell) >= MERGE_OVERLAP && cell.getMass() >= other.getMass() * ABSORPTION_RATIO) ||
+                (overlap(other, cell) >= MERGE_OVERLAP && other.getPlayer() == cell.getPlayer() &&
+                (System.currentTimeMillis()-cell.getMergeTimer())>=10000 && (System.currentTimeMillis()-other.getMergeTimer())>=10000)) {
             return true;
         }
         return false;
