@@ -1,5 +1,8 @@
 package iut.gon.serveur;
 
+import iut.gon.renderer.GameRenderer;
+import javafx.scene.canvas.Canvas;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -12,6 +15,7 @@ public class GameClient {
     private int ID;
     private final BufferedReader serverOutput;
     private final PrintWriter serverInput;
+    private GameRenderer gameRenderer;
 
 
     public GameClient(String serverAddress, int serverPort){
@@ -43,8 +47,8 @@ public class GameClient {
                             Communication.send(serverInput, MessageType.CLIENT_STATUS, "true");
                         }
                         case SERVER_GAME_STATE ->
-                            //TODO send data to client renderer
-                                System.out.println(serverOutput.readLine());
+                            gameRenderer.decodeJSON(serverOutput.readLine());
+                            //System.out.println(serverOutput.readLine());
                         case SERVER_STOP -> {
                             System.out.println("CLIENT | server stopped");
                             keepListening = false;
@@ -70,11 +74,12 @@ public class GameClient {
 
     public static void launch(String serverAddress, int serverPort){
         GameClient gameClient = new GameClient(serverAddress, serverPort);
-
+        Canvas clientGameDisplay = new Canvas();
+        GameRenderer clientGameRender = new GameRenderer(clientGameDisplay);
         //Listen to server output
         gameClient.serverMessageHandler();
+        clientGameRender.run();
 
-        //TODO run client game renderer
     }
 
 

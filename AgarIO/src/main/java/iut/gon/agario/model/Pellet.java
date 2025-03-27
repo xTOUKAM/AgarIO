@@ -3,6 +3,7 @@ package iut.gon.agario.model;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.scene.paint.Color;
+import javafx.scene.paint.Paint;
 import javafx.scene.shape.Circle;
 
 public class Pellet implements Entity {
@@ -13,12 +14,14 @@ public class Pellet implements Entity {
     private final DoubleProperty y;
     private final DoubleProperty radius;
     private static final double PELLET_MASS = 5;
+    private Color color;
     public Pellet(double startX, double startY, double startRadius, Color color) {
         this.id = idCounter++;
         this.x = new SimpleDoubleProperty(startX);
         this.y = new SimpleDoubleProperty(startY);
         this.radius = new SimpleDoubleProperty(startRadius);
         this.representation = new Circle(startRadius, color);
+        this.color = color;
         bindProperties();
     }
 
@@ -91,5 +94,9 @@ public class Pellet implements Entity {
     @Override
     public double getHeight() {
         return radius.get() * 2;
+    }
+
+    public Color getColor() {
+        return this.color;
     }
 }
