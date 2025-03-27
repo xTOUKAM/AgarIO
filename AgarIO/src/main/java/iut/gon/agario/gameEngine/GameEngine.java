@@ -114,7 +114,7 @@ public class GameEngine extends Thread {
     public void run(){
         try {
             while(true){
-                Thread.sleep(500);
+                Thread.sleep(33);
                 Set<Integer> allPlayerID =  this.players.keySet();
                 for(Integer playerID : allPlayerID){
 

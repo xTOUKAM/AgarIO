@@ -1,7 +1,6 @@
 package iut.gon.serveur;
 
 import iut.gon.renderer.GameRenderer;
-import iut.gon.renderer.GameRendererTest;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Application;
@@ -18,21 +17,23 @@ import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.Socket;
 
-public class GameClient {
+public class GameClient extends Application {
 
     private int ID;
-    private final BufferedReader serverOutput;
-    private final PrintWriter serverInput;
+    private BufferedReader serverOutput;
+    private PrintWriter serverInput;
     private GameRenderer gameRenderer;
-    private GameRendererTest gameRendererTest;
+    private Canvas canvas;
 
+    public GameClient() {
+    }
 
-    public GameClient(String serverAddress, int serverPort){
+    public GameClient(String serverAddress, int serverPort) {
         //Try connecting to server
-        try{
+        try {
             Socket socket = new Socket(InetAddress.getByName(serverAddress), serverPort);
             serverOutput = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            serverInput = new PrintWriter(socket.getOutputStream());
+            serverInput = new PrintWriter(socket.getOutputStream(), true);
             System.out.println("CLIENT | Connection to server successful");
         } catch (IOException e) {
             System.out.println("CLIENT | error while trying to connect to server");
@@ -40,10 +41,10 @@ public class GameClient {
         }
     }
 
-    private void serverMessageHandler(){
+    private void serverMessageHandler() {
         Thread ConnectionToServer = new Thread(() -> {
             boolean keepListening = true;
-            while(keepListening) {
+            while (keepListening) {
                 try {
                     switch (MessageType.values()[Integer.parseInt(serverOutput.readLine())]) {
                         case SERVER_ID -> {
@@ -51,8 +52,14 @@ public class GameClient {
                             System.out.println("CLIENT | ID received => " + this.ID);
                         }
                         case SERVER_INITIAL_GAME_STATE -> {
-                            //TODO initialize  client renderer
-                            System.out.println("CLIENT | Initial game state: " + serverOutput.readLine());
+                            String initialState = serverOutput.readLine();
+                            System.out.println("CLIENT | Initial game state: " + initialState);
+                            try {
+                                gameRenderer.decodeJSON(initialState);
+                            } catch (Exception e) {
+                                System.err.println("CLIENT | Error decoding JSON: " + e.getMessage());
+                                e.printStackTrace();
+                            }
                             Communication.send(serverInput, MessageType.CLIENT_STATUS, "true");
                         }
                         case SERVER_GAME_STATE -> {
@@ -79,19 +86,28 @@ public class GameClient {
         ConnectionToServer.start();
     }
 
-    public static void main(String[] args) {
-        GameClient.launch("127.0.0.1", 1234);
-    }
+    @Override
+    public void start(Stage primaryStage) {
+        primaryStage.setTitle("Game Client");
 
-    public static void launch(String serverAddress, int serverPort){
-        GameClient gameClient = new GameClient(serverAddress, serverPort);
-        Canvas clientGameDisplay = new Canvas();
-        GameRenderer clientGameRender = new GameRenderer(clientGameDisplay);
-        //Listen to server output
+        canvas = new Canvas(1280, 720); // Changer la taille du Canvas ici
+        gameRenderer = new GameRenderer(canvas);
+
+        StackPane root = new StackPane();
+        root.getChildren().add(canvas);
+        primaryStage.setScene(new Scene(root, 1280, 720)); // Changer la taille de la scène ici
+        primaryStage.show();
+
+        GameClient gameClient = new GameClient("127.0.0.1", 1234);
         gameClient.serverMessageHandler();
+        gameClient.gameRenderer = gameRenderer;
 
-        gameClient.gameRenderer = new GameRenderer(clientGameDisplay);
-        gameClient.gameRenderer.start();
+        Timeline timeline = new Timeline(new KeyFrame(Duration.millis(33), e -> gameRenderer.update())); // Ajuster pour 30 FPS
+        timeline.setCycleCount(Timeline.INDEFINITE);
+        timeline.play();
     }
 
+    public static void main(String[] args) {
+        launch(args);
+    }
 }
