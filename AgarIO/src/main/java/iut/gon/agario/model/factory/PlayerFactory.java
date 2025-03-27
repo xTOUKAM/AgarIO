@@ -8,12 +8,9 @@ import javafx.scene.paint.Color;
 import java.util.HashMap;
 import java.util.Random;
 
-public class PlayerFactory extends Factory {
+public class PlayerFactory implements Factory {
 
-    public PlayerFactory(Double maxX, Double maxY) {super(maxX, maxY);}
-
-    @Override
-    public Entity factory() {
+    public Entity factory(Double maxX, Double maxY) {
         Random rand = new Random();
         double X = rand.nextDouble(maxX);
         double Y = rand.nextDouble(maxY);

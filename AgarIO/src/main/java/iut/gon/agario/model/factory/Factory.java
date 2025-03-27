@@ -5,15 +5,9 @@ import iut.gon.agario.model.GameWorld;
 
 import java.util.HashMap;
 
-public abstract class Factory {
+public interface Factory {
 
-    public Double maxX;
-    public Double maxY;
-
-    public Factory(Double maxX, Double maxY) {
-        this.maxX = maxX;
-        this.maxY = maxY;
+    public static Entity factory(Double maxX, Double maxY) {
+        return null;
     }
-
-    public abstract Entity factory();
 }
