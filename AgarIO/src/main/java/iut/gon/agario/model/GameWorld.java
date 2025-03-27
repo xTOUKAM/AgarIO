@@ -10,6 +10,7 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 
+import javax.lang.model.element.PackageElement;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -20,7 +21,7 @@ public class GameWorld {
     private final DoubleProperty width;
     private final DoubleProperty height;
     private final ObservableList<Player> players;
-    private final ObservableList<Pellet> pellets;
+    private final List<Pellet> pellets;
     private final ObservableList<AIPlayer> bots;
     private final QuadTree quadTree;
 
@@ -37,7 +38,7 @@ public class GameWorld {
         this.height = new SimpleDoubleProperty(height);
         this.players = FXCollections.observableArrayList();
         this.bots = FXCollections.observableArrayList();
-        this.pellets = FXCollections.observableArrayList();
+        this.pellets = new ArrayList<Pellet>();
         this.quadTree = new QuadTree(0, new Boundary(0, 0, width, height));
     }
 
@@ -70,7 +71,7 @@ public class GameWorld {
     }
 
     public List<Pellet> getPellets() {
-        return new CopyOnWriteArrayList<>(pellets);
+        return pellets;
     }
 
     public void update() {
@@ -163,18 +164,35 @@ public class GameWorld {
         return false;
     }
 
+    public boolean canAbsorbPellet(Pellet other, Cell cell) {
+        if ((overlap(other, cell) >= MERGE_OVERLAP)) {
+            return true;
+        }
+        return false;
+    }
+
     public List<AIPlayer> getBots() {
         return bots;
     }
 
-    public void absorb(Cell other, Cell cell) {
-        if (canAbsorb(other, cell)) {
-            cell.setMass(cell.getMass() + other.getMass());
-            if(cell.getRepresentation().getParent() instanceof Pane parent) {
-                parent.getChildren().remove(other.getRepresentation());
-                parent.getChildren().remove(other.getRepresentationPerimettre());
+    public void absorb(Entity other, Cell cell) {
+        if(other instanceof Cell other1) {
+            if (canAbsorb(other1, cell)) {
+                cell.setMass(cell.getMass() + other1.getMass());
+                if (cell.getRepresentation().getParent() instanceof Pane parent) {
+                    parent.getChildren().remove(other1.getRepresentation());
+                    parent.getChildren().remove(other1.getRepresentationPerimettre());
+                }
+                deleteEntity(other1, other1.getPlayer());
             }
-            deleteEntity(other,other.getPlayer());
+        }else if(other instanceof Pellet other2){
+            if (canAbsorbPellet(other2,cell)){
+                cell.setMass(cell.getMass() + 1);
+                if (cell.getRepresentation().getParent() instanceof Pane parent) {
+                    parent.getChildren().remove(other2.getRepresentation());
+                }
+                deleteEntity(other2,cell.getPlayer());
+            }
         }
     }
 

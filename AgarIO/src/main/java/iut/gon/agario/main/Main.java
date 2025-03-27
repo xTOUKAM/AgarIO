@@ -215,30 +215,7 @@ public class Main extends Application {
             //bot.makeDecision(gameWorld);
 
         // Check for collisions between player and pastilles
-        for (Cell cell : player.getCells()){
-            checkCollisions(cell);
-        }
-
-
-        for (Cell cell : player.getCells()){
-            for(Cell cell2 : player.getCells()) {
-                if(cell != cell2){
-                    gameWorld.absorb(cell,cell2);
-                }
-            }
-        }
-
-        // Check for collisions between bots and pastilles
-        for (AIPlayer bot : bots) {
-            List<Cell> botCells = new ArrayList<>(bot.getCells());
-            for(Cell cell : botCells) {
-                checkCollisions(cell);
-                List<Cell> playerCells = new ArrayList<>(player.getCells());
-                for(Cell playerCell : playerCells) {
-                    checkCollisionsAI(playerCell);
-                }
-            }
-        }
+        checkCollisions();
 
         // Redessiner la scène (y compris les positions des bots et du joueur)
         render(miniMap, scoreBox);  // Redessine le jeu et met à jour les positions à chaque tick de la boucle
@@ -279,20 +256,68 @@ public class Main extends Application {
         }
     }
 
-
-    private void checkCollisionsAI(Cell playerCell) {
-        List<AIPlayer> eatenAI = new ArrayList<>();
-        for (AIPlayer aiPlayer : bots) {
-            List<Cell> listCell = new ArrayList<>(aiPlayer.getCells());
-            for (Cell aiCell : listCell) {
-                if(gameWorld.canAbsorb(aiCell,playerCell)){
-                    if(aiPlayer.getCells().size()==0){
-                        eatenAI.add(aiPlayer);
-                    }
-                    gameWorld.absorb(aiCell,playerCell);
-                }else if(gameWorld.canAbsorb(playerCell,aiCell)){
-                    gameWorld.absorb(playerCell,aiCell);
+    private void checkCollisions() {
+        for (Cell cell : player.getCells()){
+            List<Pellet> eatenPastilles = new ArrayList<>();
+            for (Pellet pastille : pellets) {
+                if (gameWorld.canAbsorbPellet(pastille, cell)) {
+                    gameWorld.absorb(pastille, cell);
+                    eatenPastilles.add(pastille);
                 }
+            }
+            pellets.removeAll(eatenPastilles);
+            for (Pellet pastille : eatenPastilles) {
+                if (cell.getRepresentation().getParent() instanceof Pane parent) {
+                    parent.getChildren().remove(pastille.getRepresentation());
+                }
+            }
+        }
+
+
+        try{
+            for (Cell cell : player.getCells()){
+                for(Cell cell2 : player.getCells()) {
+                    if(cell != cell2){
+                        gameWorld.absorb(cell,cell2);
+                    }
+                }
+            }
+        }
+        catch (Exception ignore){
+
+        }
+
+        // Check for collisions between bots and pastilles
+        for (AIPlayer bot : bots) {
+            List<Cell> botCells = new ArrayList<>(bot.getCells());
+            for(Cell cell : botCells) {
+                List<Pellet> eatenPastilles = new ArrayList<>();
+                for (Pellet pastille : pellets) {
+                    if (gameWorld.canAbsorbPellet(pastille, cell)) {
+                        gameWorld.absorb(pastille, cell);
+                        eatenPastilles.add(pastille);
+                    }
+                }
+                pellets.removeAll(eatenPastilles);
+                for (Pellet pastille : eatenPastilles) {
+                    if (cell.getRepresentation().getParent() instanceof Pane parent) {
+                        parent.getChildren().remove(pastille.getRepresentation());
+                    }
+                }
+                List<Cell> playerCells = new ArrayList<>(player.getCells());
+                for(Cell playerCell : playerCells) {
+                    List<AIPlayer> eatenAI = new ArrayList<>();
+                    for (AIPlayer aiPlayer : bots) {
+                        List<Cell> listCell = new ArrayList<>(aiPlayer.getCells());
+                        for (Cell aiCell : listCell) {
+                            if(gameWorld.canAbsorb(aiCell,playerCell)){
+                                if(aiPlayer.getCells().size()==0){
+                                    eatenAI.add(aiPlayer);
+                                }
+                                gameWorld.absorb(aiCell,playerCell);
+                            }else if(gameWorld.canAbsorb(playerCell,aiCell)){
+                                gameWorld.absorb(playerCell,aiCell);
+                            }
 
 
                     /*if (playerCell.getRepresentation().getBoundsInParent().intersects(aiCell.getRepresentation().getBoundsInParent())) {
@@ -307,34 +332,20 @@ public class Main extends Application {
                             }
                         }
                     }*/
-            }
-        }
-
-        // Enlever les bots mangés
-        bots.removeAll(eatenAI);
-        for (AIPlayer aiPlayer : eatenAI) {
-            for (Cell aiCell : aiPlayer.getCells()) {
-                if (playerCell.getRepresentation().getParent() instanceof Pane parent) {
-                    parent.getChildren().remove(aiCell.getRepresentation());
-                    parent.getChildren().remove(aiCell.getRepresentationPerimettre());
+                        }
+                    }
+                    // Enlever les bots mangés
+                    bots.removeAll(eatenAI);
+                    for (AIPlayer aiPlayer : eatenAI) {
+                        for (Cell aiCell : aiPlayer.getCells()) {
+                            if (cell.getRepresentation().getParent() instanceof Pane parent) {
+                                parent.getChildren().remove(aiCell.getRepresentation());
+                                parent.getChildren().remove(aiCell.getRepresentationPerimettre());
+                            }
+                        }
+                    }
                 }
             }
-        }
-    }
-
-    private void checkCollisions(Cell cell) {
-        List<Pellet> eatenPastilles = new ArrayList<>();
-        for (Pellet pastille : pellets) {
-                if (cell.getRepresentation().getBoundsInParent().intersects(pastille.getRepresentation().getBoundsInParent())) {
-                    eatenPastilles.add(pastille);
-                    cell.setMass(cell.getMass() + 1);
-                }
-        }
-        pellets.removeAll(eatenPastilles);
-        for (Pellet pastille : eatenPastilles) {
-                if (cell.getRepresentation().getParent() instanceof Pane parent) {
-                    parent.getChildren().remove(pastille.getRepresentation());
-                }
         }
     }
 
