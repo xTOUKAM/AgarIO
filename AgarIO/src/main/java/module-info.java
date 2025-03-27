@@ -7,4 +7,5 @@ module iut.gon.agario {
 
     opens iut.gon.agario.main to javafx.graphics;
     exports iut.gon.agario.main;
+    exports iut.gon.serveur;
 }
