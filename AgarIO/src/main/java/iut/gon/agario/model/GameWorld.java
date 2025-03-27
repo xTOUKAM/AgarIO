@@ -1,5 +1,6 @@
 package iut.gon.agario.model;
 
+import iut.gon.agario.gameEngine.QuadTree;
 import iut.gon.agario.model.AI.AIPlayer;
 import iut.gon.agario.model.factory.PelletFactory;
 import javafx.beans.property.DoubleProperty;
@@ -22,7 +23,7 @@ public class GameWorld {
     private final ObservableList<Player> players;
     private final ObservableList<Pellet> pellets;
     private final ObservableList<AIPlayer> bots;
-    private final QuadTree quadTree;
+    //private final QuadTree quadTree;
 
     private static final double ABSORPTION_RATIO = 1.33;
     private static final double MERGE_OVERLAP = 0.33;
@@ -37,10 +38,10 @@ public class GameWorld {
         this.players = FXCollections.observableArrayList();
         this.bots = FXCollections.observableArrayList();
         this.pellets = FXCollections.observableArrayList();
-        this.quadTree = new QuadTree(0, new Boundary(0, 0, width, height));
+        //this.quadTree = new QuadTree(0, new Boundary(0, 0, width, height));
     }
 
-    public void addPlayer(Player player) {
+    /*public void addPlayer(Player player) {
         players.add(player);
         quadTree.insert((Entity) player);
         for (Cell cell : player.getCells()) {
@@ -62,7 +63,7 @@ public class GameWorld {
     public void removePellet(Pellet pellet) {
         pellets.remove(pellet);
         quadTree.remove((Entity) pellet);
-    }
+    }*/
 
     public List<Player> getPlayers() {
         return new CopyOnWriteArrayList<>(players);
@@ -72,7 +73,7 @@ public class GameWorld {
         return new CopyOnWriteArrayList<>(pellets);
     }
 
-    public void update() {
+    /*public void update() {
         List<Player> toRemovePlayers = new ArrayList<>();
         List<Pellet> toRemovePellets = new ArrayList<>();
 
@@ -112,8 +113,8 @@ public class GameWorld {
 
         for (Pellet pellet : toRemovePellets) {
             removePellet(pellet);
-        }*/
-    }
+        }
+    }*/
 
     public DoubleProperty widthProperty() {
         return width;
@@ -131,11 +132,11 @@ public class GameWorld {
         return height.get();
     }
 
-    public QuadTree getQuadTree() {
+    /*public QuadTree getQuadTree() {
         return quadTree;
-    }
+    } */
 
-    public void deleteEntity(Entity entity, Player player) {
+    /*public void deleteEntity(Entity entity, Player player) {
         if (entity instanceof Cell cell) {
             player.getCells().remove(cell);
             removeCell(cell);
@@ -144,7 +145,7 @@ public class GameWorld {
             PelletFactory fabPast = new PelletFactory(this);
             pellets.add((Pellet) fabPast.factory());
         }
-    }
+    } */
 
     public double overlap(Entity other, Cell cell) {
         double distance = Math.sqrt(Math.pow(cell.getX() - other.getX(), 2) + Math.pow(cell.getY() - other.getY(), 2));
@@ -163,7 +164,7 @@ public class GameWorld {
         return bots;
     }
 
-    public void absorb(Cell other, Cell cell) {
+    /*public void absorb(Cell other, Cell cell) {
         if (canAbsorb(other, cell)) {
             cell.setMass(cell.getMass() + other.getMass());
             if(cell.getRepresentation().getParent() instanceof Pane parent) {
@@ -171,7 +172,7 @@ public class GameWorld {
             }
             deleteEntity(other,other.getPlayer());
         }
-    }
+    } */
 
     public void move(double cursorX, double cursorY, Player player) {
         for (Cell cell : player.getCells()) {

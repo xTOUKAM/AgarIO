@@ -14,7 +14,7 @@ public class LocalGameController extends GameController {
 
     @Override
     protected void updateGame() {
-        gameWorld.update();
+        //gameWorld.update();
 
         for(Player player : gameWorld.getPlayers()) {
             if(player instanceof AIPlayer aiPlayer) {
@@ -30,8 +30,8 @@ public class LocalGameController extends GameController {
         double ht = 100;
         //take camera zoom into account
         Boundary queryBoundary = new Boundary(x,y,wd,ht);
-        playersInRenderDistance = gameWorld.getQuadTree().retrieveAllPlayersInBoundary(queryBoundary);
-        pelletsInRenderDistance = gameWorld.getQuadTree().retrieveAllPelletsInBoundary(queryBoundary);
+        //playersInRenderDistance = gameWorld.getQuadTree().retrieveAllPlayersInBoundary(queryBoundary);
+        //pelletsInRenderDistance = gameWorld.getQuadTree().retrieveAllPelletsInBoundary(queryBoundary);
     }
 
     public List<Player> getPlayesInRenderDistance(){

@@ -43,7 +43,7 @@ public class GameRenderer extends Thread {
         decodePellets(jsonObject.getJSONArray("pellets"));
 
         // On récupère les informations du monde
-        decodeGameWorld(jsonObject.getJSONObject("gameWorld"));
+        //decodeGameWorld(jsonObject.getJSONObject("gameWorld"));
     }
 
     public void decodePlayers(JSONArray playersArray) {
@@ -55,7 +55,7 @@ public class GameRenderer extends Thread {
             double y = playerObject.getDouble("y");
             double mass = playerObject.getDouble("mass");
             String color = playerObject.getString("color");
-            players.add(new Player(x,y,mass, Color.web(color)));
+            players.add(new Player(x,y,mass, Color.web(color), 0));
         }
     }
 

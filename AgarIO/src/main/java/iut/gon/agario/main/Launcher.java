@@ -34,7 +34,7 @@ public class Launcher extends Application {
 
     private void startLocalGame(Stage primaryStage) {
         Main mainApp = new Main();
-        mainApp.start(primaryStage);
+        //mainApp.start(primaryStage);
     }
 
     private void startNetworkGame(Stage primaryStage) {

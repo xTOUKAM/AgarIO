@@ -1,6 +1,5 @@
 package iut.gon.agario.model;
 
-import iut.gon.agario.main.Main;
 import javafx.geometry.Rectangle2D;
 
 public class Camera {
@@ -21,8 +20,8 @@ public class Camera {
     }
 
     private void centerOnPlayer() {
-        this.x = player.getX() - Main.WIDTH / (2 * zoom);
-        this.y = player.getY() - Main.HEIGHT / (2 * zoom);
+        this.x = player.getX() - 2000 / (2 * zoom);
+        this.y = player.getY() - 2000 / (2 * zoom);
     }
 
     public double getX() {
@@ -50,12 +49,12 @@ public class Camera {
         double viewY = getViewY(worldY);
         double viewWidth = width * zoom;
         double viewHeight = height * zoom;
-        return viewX + viewWidth >= 0 && viewX <= Main.WIDTH && viewY + viewHeight >= 0 && viewY <= Main.HEIGHT;
+        return viewX + viewWidth >= 0 && viewX <= 2000 && viewY + viewHeight >= 0 && viewY <= 2000;
     }
 
     public Rectangle2D getViewBounds() {
-        double width = Main.WIDTH / zoom;
-        double height = Main.HEIGHT / zoom;
+        double width = 2000 / zoom;
+        double height = 2000 / zoom;
         return new Rectangle2D(x, y, width, height);
     }
 

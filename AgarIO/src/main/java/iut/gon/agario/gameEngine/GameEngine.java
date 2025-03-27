@@ -88,7 +88,7 @@ public class GameEngine extends Thread {
     }
 
     public void addPlayer(int ID){
-        Player newPlayer = (Player) PlayerFactory.factory(maxWidth, maxHeight);
+        Player newPlayer = (Player) PlayerFactory.factory(maxWidth, maxHeight, ID);
         players.add(ID, newPlayer);
         gameMap.addEntity(newPlayer);
     }

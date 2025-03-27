@@ -57,12 +57,17 @@ public class Main extends Application {
     public static GameWorld getGameWorld() {
         // Assurez-vous que le GameWorld a bien été initialisé avant de le renvoyer
         if (gameWorld == null) {
-            initializeGameWorld();  // Initialiser s'il n'est pas encore créé
+            //initializeGameWorld();  // Initialiser s'il n'est pas encore créé
         }
         return gameWorld;
     }
 
-    public static void initializeGameWorld() {
+    @Override
+    public void start(Stage stage) throws Exception {
+
+    }
+
+    /*public static void initializeGameWorld() {
         if (gameWorld == null) {
             // Créer une instance du GameWorld avec la largeur et la hauteur du jeu
             gameWorld = new GameWorld(WIDTH, HEIGHT);
@@ -71,22 +76,22 @@ public class Main extends Application {
             PlayerFactory playerFactory = new PlayerFactory(gameWorld);
             Player player = (Player) playerFactory.factory();
             player.name = "C MOI WSH";  // Vous pouvez modifier le nom du joueur
-            gameWorld.addPlayer(player);
+            //gameWorld.addPlayer(player);
 
             // Ajouter des bots AI
             for (int i = 0; i < NUM_BOTS; i++) {
                 AIFactory aiFactory = new AIFactory(gameWorld);
-                AIPlayer bot = (AIPlayer) aiFactory.factory();
+                AIPlayer bot = (AIPlayer) AIFactory.factory();
                 bot.name = Names.getRandomName().name();  // Vous pouvez donner un nom aléatoire aux bots
                 bot.setStrategy(new EatFoodStrategy());
-                gameWorld.addPlayer(bot);
+                //gameWorld.addPlayer(bot);
             }
 
             // Ajouter des pastilles
             for (int i = 0; i < NUM_PASTILLES; i++) {
                 PelletFactory pelletFactory = new PelletFactory(gameWorld);
-                Pellet pellet = (Pellet) pelletFactory.factory();
-                gameWorld.addPellet(pellet);
+                Pellet pellet = (Pellet) PelletFactory.factory();
+                //gameWorld.addPellet(pellet);
             }
         }
     }
@@ -146,7 +151,7 @@ public class Main extends Application {
         TextField chatInput = new TextField();
         chatInput.setLayoutX(10);
         chatInput.setLayoutY(HEIGHT - 30);
-        root.getChildren().add(chatInput);*/
+        root.getChildren().add(chatInput);
 
         if(player != null) {
 
@@ -291,7 +296,7 @@ public class Main extends Application {
                                 pane.getChildren().remove(playerCell.getRepresentation());
                             }
                         }
-                    }*/
+                    }
             }
         }
 
@@ -325,4 +330,6 @@ public class Main extends Application {
     public static void main(String[] args) {
         launch(args);
     }
+
+     */
 }

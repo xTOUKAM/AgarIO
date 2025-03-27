@@ -1,5 +1,7 @@
 package iut.gon.serveur;
 
+import iut.gon.agario.gameEngine.GameEngine;
+
 import java.io.*;
 import java.net.Socket;
 
@@ -8,11 +10,13 @@ public class ClientHandler extends Thread {
     private final Socket socket;
     private final BufferedReader clientOutput;
     private final GameServer gameServer;
+    private final GameEngine gameEngine;
 
-    public ClientHandler(Socket socket, GameServer gameServer, int ID) {
+    public ClientHandler(Socket socket, GameServer gameServer, int ID, GameEngine gameEngine) {
         this.socket = socket;
         this.gameServer = gameServer;
         this.ID = ID;
+        this.gameEngine = gameEngine;
         try {
             clientOutput = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         } catch (IOException e) {
@@ -32,6 +36,7 @@ public class ClientHandler extends Thread {
                 switch (messageType) {
                     case CLIENT_STATUS -> {
                         this.gameServer.updateClientStatus(this.ID, Boolean.parseBoolean(clientOutput.readLine()));
+                        gameEngine.addPlayer(this.ID);
                     }
                     case CLIENT_MOVEMENT -> {
                         String movementData = clientOutput.readLine();

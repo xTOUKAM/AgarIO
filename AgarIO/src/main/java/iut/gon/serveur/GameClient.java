@@ -43,12 +43,14 @@ public class GameClient {
                         }
                         case SERVER_INITIAL_GAME_STATE -> {
                             //TODO initialize  client renderer
-                            System.out.println(serverOutput.readLine());
+                            System.out.println("CLIENT | Initial game state: " + serverOutput.readLine());
                             Communication.send(serverInput, MessageType.CLIENT_STATUS, "true");
                         }
-                        case SERVER_GAME_STATE ->
-                            gameRenderer.decodeJSON(serverOutput.readLine());
-                            //System.out.println(serverOutput.readLine());
+                        case SERVER_GAME_STATE -> {
+                            String gameState = serverOutput.readLine();
+                            System.out.println("CLIENT | Game state received: " + gameState);
+                            gameRenderer.decodeJSON(gameState);
+                        }
                         case SERVER_STOP -> {
                             System.out.println("CLIENT | server stopped");
                             keepListening = false;
@@ -78,8 +80,9 @@ public class GameClient {
         GameRenderer clientGameRender = new GameRenderer(clientGameDisplay);
         //Listen to server output
         gameClient.serverMessageHandler();
-        clientGameRender.run();
 
+        gameClient.gameRenderer = new GameRenderer(clientGameDisplay);
+        gameClient.gameRenderer.run();
     }
 
 
