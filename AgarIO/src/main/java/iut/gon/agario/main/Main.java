@@ -44,7 +44,7 @@ public class Main extends Application {
     public static final int WIDTH = 2000;
     public static final int HEIGHT = 720;
     private static final int NUM_PASTILLES = 100;
-    private static final int NUM_BOTS = 5;
+    private static final int NUM_BOTS = 20;
     private List<Pellet> pellets;
     private CopyOnWriteArrayList<AIPlayer> bots;
     public Player player;
@@ -217,6 +217,7 @@ public class Main extends Application {
             checkCollisions(cell);
         }
 
+
         for (Cell cell : player.getCells()){
             for(Cell cell2 : player.getCells()) {
                 if(cell != cell2){
@@ -227,9 +228,11 @@ public class Main extends Application {
 
         // Check for collisions between bots and pastilles
         for (AIPlayer bot : bots) {
-            for(Cell cell : bot.getCells()) {
+            List<Cell> botCells = new ArrayList<>(bot.getCells());
+            for(Cell cell : botCells) {
                 checkCollisions(cell);
-                for(Cell playerCell : player.getCells()) {
+                List<Cell> playerCells = new ArrayList<>(player.getCells());
+                for(Cell playerCell : playerCells) {
                     checkCollisionsAI(playerCell);
                 }
             }
@@ -278,9 +281,12 @@ public class Main extends Application {
     private void checkCollisionsAI(Cell playerCell) {
         List<AIPlayer> eatenAI = new ArrayList<>();
         for (AIPlayer aiPlayer : bots) {
-            for (Cell aiCell : aiPlayer.getCells()) {
+            List<Cell> listCell = new ArrayList<>(aiPlayer.getCells());
+            for (Cell aiCell : listCell) {
                 if(gameWorld.canAbsorb(aiCell,playerCell)){
-                    eatenAI.add(aiPlayer);
+                    if(aiPlayer.getCells().size()==0){
+                        eatenAI.add(aiPlayer);
+                    }
                     gameWorld.absorb(aiCell,playerCell);
                 }else if(gameWorld.canAbsorb(playerCell,aiCell)){
                     gameWorld.absorb(playerCell,aiCell);
