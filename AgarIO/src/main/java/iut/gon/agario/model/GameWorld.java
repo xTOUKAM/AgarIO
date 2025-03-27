@@ -200,8 +200,32 @@ public class GameWorld {
                     cell.setSpeed(maxSpeed * Math.min(1.0, distance / CONTROL_RADIUS));
                 }
             }
-            cell.setX(cell.getX() + cell.getDirectionX() * cell.getSpeed());
-            cell.setY(cell.getY() + cell.getDirectionY() * cell.getSpeed());
+
+            double newX = cell.getX() + cell.getDirectionX() * cell.getSpeed();
+            double newY = cell.getY() + cell.getDirectionY() * cell.getSpeed();
+
+            // Vérifier les collisions avec les autres cellules du même joueur
+            for (Cell otherCell : player.getCells()) {
+                if (cell != otherCell) {
+                    double distBetweenCells = Math.sqrt(Math.pow(newX - otherCell.getX(), 2) + Math.pow(newY - otherCell.getY(), 2));
+                    double minDist = cell.calculateRadius(cell.getMass()) + otherCell.calculateRadius(otherCell.getMass());
+
+                    if (distBetweenCells < minDist &&
+                            (System.currentTimeMillis() - cell.getMergeTimer()) < 10000 &&
+                            (System.currentTimeMillis() - otherCell.getMergeTimer()) < 10000) {
+
+                        // Repousser la cellule pour éviter la superposition
+                        double overlap = minDist - distBetweenCells;
+                        double pushX = (newX - otherCell.getX()) / distBetweenCells * overlap;
+                        double pushY = (newY - otherCell.getY()) / distBetweenCells * overlap;
+                        newX += pushX;
+                        newY += pushY;
+                    }
+                }
+            }
+
+            cell.setX(newX);
+            cell.setY(newY);
         }
     }
 

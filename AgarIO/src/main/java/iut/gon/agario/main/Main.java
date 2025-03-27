@@ -219,12 +219,20 @@ public class Main extends Application {
         }
 
 
-        for (Cell cell : player.getCells()){
-            for(Cell cell2 : player.getCells()) {
-                if(cell != cell2){
-                    gameWorld.absorb(cell,cell2);
+        try {
+            List<Cell> cellsCopy = new ArrayList<>(player.getCells());
+
+            for (Cell cell : cellsCopy) {
+                if (!player.getCells().contains(cell)) continue;
+
+                for (Cell cell2 : player.getCells()) {
+                    if (cell != cell2) {
+                        gameWorld.absorb(cell, cell2);
+                    }
                 }
             }
+        } catch (Exception ignored) {
+
         }
 
         // Check for collisions between bots and pastilles
