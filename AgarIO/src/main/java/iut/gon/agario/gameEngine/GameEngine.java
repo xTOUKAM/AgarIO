@@ -126,17 +126,24 @@ public class GameEngine extends Thread {
 
     @Override
     public void run(){
-        while(true){
-            for(Player player : this.players){
+        try {
+            while(true){
+                Thread.sleep(500);
 
-                //movement
-                Coords cursor = playersCursors.get(player.getId());
-                move(cursor.x, cursor.y, player);
+                for(Player player : this.players){
 
-                //
+                    //movement
+                    Coords cursor = playersCursors.get(player.getId());
+                    move(cursor.x, cursor.y, player);
 
-                gameServer.sendToClientByID(MessageType.SERVER_GAME_STATE, getJson(player, gameMap.getEntitiesFromPoint(player.getX(), player.getY(), 200, 200)), player.getId(), true);
+                    //
+                    String json = getJson(player, gameMap.getEntitiesFromPoint(player.getX(), player.getY(), 200, 200));
+                    System.out.println(json);
+                    gameServer.sendToClientByID(MessageType.SERVER_GAME_STATE, json, player.getId(), true);
+                }
             }
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
         }
     }
 }
