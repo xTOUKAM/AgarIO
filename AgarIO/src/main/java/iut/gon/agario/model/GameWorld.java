@@ -30,6 +30,7 @@ public class GameWorld {
     private static final long SPEED_DECAY_DURATION = 1500;
     private static final long CONTROL_RADIUS = 100;
     private static final double MIN_SPEED = 0;
+    private static final double MIN_TIME_SPLIT = 10000;
 
     public GameWorld(double width, double height) {
         this.width = new SimpleDoubleProperty(width);
@@ -171,6 +172,7 @@ public class GameWorld {
             cell.setMass(cell.getMass() + other.getMass());
             if(cell.getRepresentation().getParent() instanceof Pane parent) {
                 parent.getChildren().remove(other.getRepresentation());
+                parent.getChildren().remove(other.getRepresentationPerimettre());
             }
             deleteEntity(other,other.getPlayer());
         }
@@ -200,8 +202,29 @@ public class GameWorld {
                     cell.setSpeed(maxSpeed * Math.min(1.0, distance / CONTROL_RADIUS));
                 }
             }
-            cell.setX(cell.getX() + cell.getDirectionX() * cell.getSpeed());
-            cell.setY(cell.getY() + cell.getDirectionY() * cell.getSpeed());
+
+            double newX = cell.getX() + cell.getDirectionX() * cell.getSpeed();
+            double newY = cell.getY() + cell.getDirectionY() * cell.getSpeed();
+
+            for (Cell otherCell : player.getCells()) {
+                if(cell != otherCell) {
+                    double distBetween = Math.sqrt(Math.pow(newX - otherCell.getX(), 2) + Math.pow(newY - otherCell.getY(), 2));
+                    double minDist = cell.calculateRadius(cell.getMass() + otherCell.calculateRadius(otherCell.getMass()));
+
+                    if(distBetween < minDist &&
+                            (System.currentTimeMillis()-cell.getMergeTimer()) < MIN_TIME_SPLIT &&
+                            (System.currentTimeMillis()-otherCell.getMergeTimer()) < MIN_TIME_SPLIT) {
+                        double overlap = minDist - distBetween;
+                        double pushX = (newX - otherCell.getX()) / distBetween * overlap;
+                        double pushY = (newY - otherCell.getY()) / distBetween * overlap;
+                        newX+=pushX;
+                        newY+=pushY;
+                    }
+                }
+            }
+            cell.setX(newX);
+            cell.setY(newY);
+
         }
     }
 

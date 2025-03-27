@@ -41,9 +41,9 @@ public class Main extends Application {
 
     public static final int CANVAS_WIDTH = 200;
     public static final int CANVAS_HEIGHT = 200;
-    public static final int WIDTH = 2000;
+    public static final int WIDTH = 1580;
     public static final int HEIGHT = 720;
-    private static final int NUM_PASTILLES = 100;
+    private static final int NUM_PASTILLES = 200;
     private static final int NUM_BOTS = 20;
     private List<Pellet> pellets;
     private CopyOnWriteArrayList<AIPlayer> bots;
@@ -191,6 +191,7 @@ public class Main extends Application {
             bots.add(bot);
             for (Cell cell : bot.getCells()) {
                 root.getChildren().add(cell.getRepresentation());
+                root.getChildren().add(cell.getRepresentationPerimettre());
             }
         }
     }
@@ -199,6 +200,7 @@ public class Main extends Application {
         player = new Player(WIDTH / 2, HEIGHT / 2, 10, Color.BLUE);
         for (Cell cell : player.getCells()) {
             root.getChildren().add(cell.getRepresentation());
+            root.getChildren().add(cell.getRepresentationPerimettre());
         }
     }
 
@@ -314,6 +316,7 @@ public class Main extends Application {
             for (Cell aiCell : aiPlayer.getCells()) {
                 if (playerCell.getRepresentation().getParent() instanceof Pane parent) {
                     parent.getChildren().remove(aiCell.getRepresentation());
+                    parent.getChildren().remove(aiCell.getRepresentationPerimettre());
                 }
             }
         }

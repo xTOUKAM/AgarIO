@@ -12,6 +12,7 @@ import iut.gon.agario.main.Main;
 public class Cell implements Entity {
     private final int id;
     private final Circle representation;
+    private final Circle representationPerimettre;
     private final DoubleProperty x;
     private final DoubleProperty y;
     private final DoubleProperty mass;
@@ -29,7 +30,8 @@ public class Cell implements Entity {
         this.y = new SimpleDoubleProperty(startY);
         this.mass = new SimpleDoubleProperty(startMass);
         this.color = color;
-        this.representation = new Circle(calculateRadius(startMass), this.color);
+        this.representation = new Circle(calculateRadius(startMass), Color.BLACK);
+        this.representationPerimettre = new Circle(calculatePerimeter(startMass), this.color);
         bindProperties();
         this.speed = initialCurrentMaxSpeed() / Math.sqrt(this.getMass());
         this.player = player;
@@ -43,6 +45,14 @@ public class Cell implements Entity {
                 this.mass
         );
         this.representation.radiusProperty().bind(radiusBinding);
+
+        this.representationPerimettre.centerXProperty().bind(this.x);
+        this.representationPerimettre.centerYProperty().bind(this.y);
+        DoubleBinding PerimetterBinding = Bindings.createDoubleBinding(
+                () -> calculatePerimeter(this.mass.get()),
+                this.mass
+        );
+        this.representationPerimettre.radiusProperty().bind(PerimetterBinding);
     }
 
     public Player getPlayer(){
@@ -53,9 +63,15 @@ public class Cell implements Entity {
         return representation;
     }
 
+    public Circle getRepresentationPerimettre() { return representationPerimettre; }
+
     @Override
     public double calculateRadius(double mass) {
         return 10 * Math.sqrt(mass);
+    }
+
+    public double calculatePerimeter(double mass) {
+        return 3 * Math.PI * Math.sqrt(mass);
     }
 
     @Override

@@ -14,6 +14,7 @@ public class InvisibilityPellet extends SpecialPellet {
     public void applyEffect() {
         for(Cell cell : player.getCells()) {
             cell.getRepresentation().opacityProperty().set(0.33);
+            cell.getRepresentationPerimettre().opacityProperty().set(0.33);
         }
     }
 }
