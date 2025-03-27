@@ -14,7 +14,7 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 
-public class GameRenderer {
+public class GameRenderer extends Thread {
     private Canvas canvas;
     private List<Player> players;
     private Player player;
@@ -96,5 +96,9 @@ public class GameRenderer {
             gc.setFill(pellet.getColor());
             gc.fillOval(pellet.getX(), pellet.getY(), pellet.getRadius(), pellet.getRadius());
         }
+    }
+
+    public void run() {
+
     }
 }
