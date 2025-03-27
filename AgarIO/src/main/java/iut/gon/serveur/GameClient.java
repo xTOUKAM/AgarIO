@@ -61,6 +61,7 @@ public class GameClient {
                         }
                     }
                 } catch (Exception e) {
+                    e.printStackTrace();
                     keepListening = false;
                     System.out.println("CLIENT | server stopped unexpectedly");
                 }

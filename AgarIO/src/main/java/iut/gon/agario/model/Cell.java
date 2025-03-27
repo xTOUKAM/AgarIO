@@ -8,6 +8,7 @@ import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import iut.gon.agario.main.Main;
+import org.json.JSONObject;
 
 public class Cell implements Entity {
     private final int id;
@@ -27,7 +28,7 @@ public class Cell implements Entity {
         this.y = new SimpleDoubleProperty(startY);
         this.mass = new SimpleDoubleProperty(startMass);
         this.color = color;
-        this.representation = new Circle(calculateRadius(startMass), this.color);
+        this.representation = new Circle(calculateRadius(), this.color);
         bindProperties();
         this.speed = initialCurrentMaxSpeed() / Math.sqrt(this.getMass());
         this.player = player;
@@ -37,7 +38,7 @@ public class Cell implements Entity {
         this.representation.centerXProperty().bind(this.x);
         this.representation.centerYProperty().bind(this.y);
         DoubleBinding radiusBinding = Bindings.createDoubleBinding(
-                () -> calculateRadius(this.mass.get()),
+                () -> calculateRadius(),
                 this.mass
         );
         this.representation.radiusProperty().bind(radiusBinding);
@@ -52,8 +53,8 @@ public class Cell implements Entity {
     }
 
     @Override
-    public double calculateRadius(double mass) {
-        return 10 * Math.sqrt(mass);
+    public double calculateRadius() {
+        return 10 * Math.sqrt(this.mass.doubleValue());
     }
 
     @Override
@@ -144,6 +145,11 @@ public class Cell implements Entity {
 
     public void GiveSpeedBoost(){
         lastSpeedBoostTime = System.currentTimeMillis();
+    }
+
+    @Override
+    public JSONObject getJSON() {
+        return null;
     }
 }
 

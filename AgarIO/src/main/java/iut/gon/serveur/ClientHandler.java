@@ -36,7 +36,9 @@ public class ClientHandler extends Thread {
                 switch (messageType) {
                     case CLIENT_STATUS -> {
                         this.gameServer.updateClientStatus(this.ID, Boolean.parseBoolean(clientOutput.readLine()));
+                        gameEngine.updateCursor(this.ID, 0, 0);
                         gameEngine.addPlayer(this.ID);
+
                     }
                     case CLIENT_MOVEMENT -> {
                         String movementData = clientOutput.readLine();
@@ -54,6 +56,7 @@ public class ClientHandler extends Thread {
                     }
                 }
             } catch (Exception e) {
+                e.printStackTrace();
                 keepListening = false;
                 System.out.println("SERVER | Connection to client " + this.ID + " stopped unexpectedly");
                 try {

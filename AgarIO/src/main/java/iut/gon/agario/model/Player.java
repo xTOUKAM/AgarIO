@@ -3,6 +3,7 @@ package iut.gon.agario.model;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -79,8 +80,8 @@ public class Player implements Entity {
     }
 
     @Override
-    public double calculateRadius(double mass) {
-        return 10 * Math.sqrt(mass);
+    public double calculateRadius() {
+        return 10 * Math.sqrt(this.getMass());
     }
 
     public double currentMaxSpeed() {
@@ -102,5 +103,18 @@ public class Player implements Entity {
 
     public Color getColor() {
         return this.color;
+    }
+
+    @Override
+    public JSONObject getJSON() {
+        JSONObject JSONPlayer = new JSONObject();
+        JSONPlayer.put("isPlayer", true);
+        JSONPlayer.put("name", this.name);
+        JSONPlayer.put("x", this.getX());
+        JSONPlayer.put("y", this.getY());
+        JSONPlayer.put("mass", this.getMass());
+        JSONPlayer.put("color", this.color);
+        JSONPlayer.put("id", id);
+        return JSONPlayer;
     }
 }

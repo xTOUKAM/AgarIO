@@ -5,6 +5,7 @@ import javafx.beans.property.SimpleDoubleProperty;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.Circle;
+import org.json.JSONObject;
 
 public class Pellet implements Entity {
     private static int idCounter = 0;
@@ -62,8 +63,8 @@ public class Pellet implements Entity {
     }
 
     @Override
-    public double calculateRadius(double mass) {
-        return 10 * Math.sqrt(mass);
+    public double calculateRadius() {
+        return 10 * Math.sqrt(this.getMass());
     }
 
     @Override
@@ -98,5 +99,16 @@ public class Pellet implements Entity {
 
     public Color getColor() {
         return this.color;
+    }
+
+    @Override
+    public JSONObject getJSON() {
+        JSONObject JSONPellet = new JSONObject();
+        JSONPellet.put("isPlayer", false);
+        JSONPellet.put("x", this.getX());
+        JSONPellet.put("y", this.getY());
+        JSONPellet.put("radius", this.getRadius());
+        JSONPellet.put("color", this.color);
+        return JSONPellet;
     }
 }

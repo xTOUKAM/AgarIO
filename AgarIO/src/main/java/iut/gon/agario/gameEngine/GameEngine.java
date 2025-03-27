@@ -27,8 +27,9 @@ public class GameEngine extends Thread {
     private final QuadTree gameMap;
     private final double maxWidth;
     private final double maxHeight;
-    private final ArrayList<Player> players = new ArrayList<>();
-    private final ArrayList<Coords> playersCursors = new ArrayList<>();
+    private final HashMap<Integer, Player> players = new HashMap<>();
+    private final HashMap<Integer, Coords> playersCursors = new HashMap<>();
+
 
     public GameEngine(GameServer gameServer, double mapWidth, double mapHeight, int nbPellet){
         this.gameServer = gameServer;
@@ -41,7 +42,7 @@ public class GameEngine extends Thread {
 
         //Pellet
         for(int i = 0; i < nbPellet; i++){
-            gameMap.addEntity(PelletFactory.factory(maxWidth, maxHeight));
+            gameMap.addEntity((Pellet)PelletFactory.factory(maxWidth, maxHeight));
         }
 
     }
@@ -49,27 +50,9 @@ public class GameEngine extends Thread {
     public String getJson(Player player, ArrayList<Entity> entities){
         JSONObject stringPackage = new JSONObject();
 
-        JSONArray pelletArray = new JSONArray();
-        JSONArray playerArray = new JSONArray();
+        JSONArray entityArray = new JSONArray();
         for(Entity entity : entities){
-            if(entity instanceof Player){
-                Player playerEntity = (Player)entity;
-                JSONObject JSONPlayer = new JSONObject();
-                JSONPlayer.put("name", playerEntity.name);
-                JSONPlayer.put("x", playerEntity.getX());
-                JSONPlayer.put("y", playerEntity.getY());
-                JSONPlayer.put("radius", playerEntity.calculateRadius(playerEntity.getMass()));
-                JSONPlayer.put("color", "00FF00");
-                playerArray.put(JSONPlayer);
-            }else{
-                JSONObject JSONPellet = new JSONObject();
-                JSONPellet.put("x", entity.getX());
-                JSONPellet.put("y", entity.getY());
-                JSONPellet.put("radius", entity.calculateRadius(entity.getMass()));
-                JSONPellet.put("color", "FF0000");
-
-                playerArray.put(JSONPellet);
-            }
+            entityArray.put(entity.getJSON());
         }
 
 
@@ -81,16 +64,19 @@ public class GameEngine extends Thread {
         camera.put("height", 200);
 
         stringPackage.put("camera", camera);
-        stringPackage.put("pellet", pelletArray);
-        stringPackage.put("players", playerArray);
+        stringPackage.put("entities", entityArray);
 
         return stringPackage.toString();
     }
 
     public void addPlayer(int ID){
         Player newPlayer = (Player) PlayerFactory.factory(maxWidth, maxHeight, ID);
-        players.add(ID, newPlayer);
+        players.put(ID, newPlayer);
         gameMap.addEntity(newPlayer);
+    }
+
+    public void updateCursor(int ID, double x, double y){
+        this.playersCursors.put(ID, new Coords(x, y));
     }
 
 
@@ -129,16 +115,16 @@ public class GameEngine extends Thread {
         try {
             while(true){
                 Thread.sleep(500);
+                Set<Integer> allPlayerID =  this.players.keySet();
+                for(Integer playerID : allPlayerID){
 
-                for(Player player : this.players){
-
+                    Player player = this.players.get(playerID);
                     //movement
                     Coords cursor = playersCursors.get(player.getId());
                     move(cursor.x, cursor.y, player);
 
                     //
                     String json = getJson(player, gameMap.getEntitiesFromPoint(player.getX(), player.getY(), 200, 200));
-                    System.out.println(json);
                     gameServer.sendToClientByID(MessageType.SERVER_GAME_STATE, json, player.getId(), true);
                 }
             }
