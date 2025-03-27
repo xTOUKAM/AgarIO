@@ -112,7 +112,8 @@ public class Main extends Application {
         spawnPlayer(root);
 
         // Create camera
-        camera = new Camera(player);
+        camera = new Camera(player.getX(), player.getY(), WIDTH, HEIGHT, player);
+        camera.update();
 
         // Create mini-map
         Canvas miniMap = new Canvas(CANVAS_WIDTH, CANVAS_HEIGHT);
@@ -194,7 +195,7 @@ public class Main extends Application {
         checkCollisions(player); // Vérifie les collisions entre le joueur et les pastilles
         checkCollisionsAI(player); // Vérifie les collisions entre le joueur et les bots
         gameWorld.checkBotCollisions(bots);  // Vérifier les collisions entre bots
-
+        camera.update();
         // Redessiner la scène (y compris les positions des bots et du joueur)
         render(miniMap, scoreBox);  // Redessine le jeu et met à jour les positions à chaque tick de la boucle
     }

@@ -138,7 +138,7 @@ public class GameWorld {
 
     public double overlap(Entity other, Player player) {
         double distance = Math.sqrt(Math.pow(player.getX() - other.getX(), 2) + Math.pow(player.getY() - other.getY(), 2));
-        double combinedRadius = player.calculateRadius(player.getMass()) + other.calculateRadius(player.getMass());
+        double combinedRadius = player.calculateRadius() + other.calculateRadius();
         return (combinedRadius - distance) / combinedRadius;
     }
 

@@ -13,5 +13,5 @@ public interface  Entity {
 
      double getHeight();
 
-     double calculateRadius(double mass);
+     double calculateRadius();
 }

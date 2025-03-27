@@ -62,8 +62,8 @@ public class Pellet implements Entity {
     }
 
     @Override
-    public double calculateRadius(double mass) {
-        return 10 * Math.sqrt(mass);
+    public double calculateRadius() {
+        return 10 * Math.sqrt(this.getMass());
     }
 
     @Override

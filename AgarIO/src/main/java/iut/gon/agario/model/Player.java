@@ -34,7 +34,7 @@ public class Player implements Entity {
         this.y = new SimpleDoubleProperty(startY);
         this.mass = new SimpleDoubleProperty(startMass);
         this.color = color;
-        this.representation = new Circle(calculateRadius(startMass), this.color);
+        this.representation = new Circle(calculateRadius(), this.color);
         bindProperties();
         this.speed = currentMaxSpeed() / Math.sqrt(this.getMass());
     }
@@ -43,15 +43,15 @@ public class Player implements Entity {
         this.representation.centerXProperty().bind(this.x);
         this.representation.centerYProperty().bind(this.y);
         DoubleBinding radiusBinding = Bindings.createDoubleBinding(
-                () -> calculateRadius(this.mass.get()),
+                () -> calculateRadius(),
                 this.mass
         );
         this.representation.radiusProperty().bind(radiusBinding);
     }
 
     @Override
-    public double calculateRadius(double mass) {
-        return 10 * Math.sqrt(mass);
+    public double calculateRadius() {
+        return 10 * Math.sqrt(this.mass.doubleValue());
     }
     @Override
     public int getId() {
