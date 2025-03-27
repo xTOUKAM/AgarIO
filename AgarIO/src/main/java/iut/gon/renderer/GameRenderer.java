@@ -99,6 +99,6 @@ public class GameRenderer extends Thread {
     }
 
     public void run() {
-
+        update();
     }
 }
