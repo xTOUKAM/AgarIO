@@ -9,6 +9,7 @@ import javafx.collections.ObservableList;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.ArcType;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -45,7 +46,7 @@ public class GameWorld {
         players.add(player);
         quadTree.insert((Entity) player);
         for (Cell cell : player.getCells()) {
-            quadTree.insert(cell); // Ajouter les cellules dans le quadTree
+            quadTree.insert(cell);
         }
     }
 
@@ -86,8 +87,7 @@ public class GameWorld {
                 if (entity instanceof Pellet pastille) {
                     for (Cell cell : player.getCells()) {
                         if (cell.getRepresentation().getBoundsInParent().intersects(pastille.getRepresentation().getBoundsInParent())) {
-                            cell.setMass(cell.getMass() + pastille.getRadius());
-                            removePellet(pastille);
+                            absorb(pastille, cell);
                         }
                     }
                 } else if (entity instanceof Player otherPlayer) {
@@ -154,13 +154,13 @@ public class GameWorld {
     }
 
     public boolean canAbsorb(Cell other, Cell cell) {
-        if (((overlap(other, cell) >= MERGE_OVERLAP && cell.getMass() >= other.getMass() * ABSORPTION_RATIO) &&
-                other.getPlayer() != cell.getPlayer()) ||
-                (overlap(other, cell) >= MERGE_OVERLAP && other.getPlayer() == cell.getPlayer() &&
-                (System.currentTimeMillis()-cell.getMergeTimer())>= (MIN_TIME_SPLIT + (cell.getMass() / 100)) && (System.currentTimeMillis()-other.getMergeTimer())>=(MIN_TIME_SPLIT + (other.getMass() / 100)))) {
-            return true;
-        }
-        return false;
+        long currentTime = System.currentTimeMillis();
+        boolean canMerge = overlap(other, cell) >= MERGE_OVERLAP && cell.getMass() >= other.getMass() * ABSORPTION_RATIO;
+
+        boolean isValidMergeTime = (currentTime - cell.getMergeTimer()) >= (MIN_TIME_SPLIT + (cell.getMass() / 100)) &&
+                (currentTime - other.getMergeTimer()) >= (MIN_TIME_SPLIT + (other.getMass() / 100));
+
+        return canMerge && isValidMergeTime;
     }
 
     public boolean canAbsorbPellet(Pellet other, Cell cell) {
@@ -175,25 +175,32 @@ public class GameWorld {
     }
 
     public void absorb(Entity other, Cell cell) {
-        if(other instanceof Cell other1) {
+        if (other instanceof Cell other1) {
             if (canAbsorb(other1, cell)) {
+                cell.openMouth();
                 cell.setMass(cell.getMass() + other1.getMass());
+
                 if (cell.getRepresentation().getParent() instanceof Pane parent) {
                     parent.getChildren().remove(other1.getRepresentation());
                     parent.getChildren().remove(other1.getRepresentationPerimeter());
                 }
                 deleteEntity(other1, other1.getPlayer());
+                cell.closeMouth();
             }
-        }else if(other instanceof Pellet other2){
-            if (canAbsorbPellet(other2,cell)){
+        } else if (other instanceof Pellet other2) {
+            if (canAbsorbPellet(other2, cell)) {
+                cell.openMouth();
                 cell.setMass(cell.getMass() + 1);
+
                 if (cell.getRepresentation().getParent() instanceof Pane parent) {
                     parent.getChildren().remove(other2.getRepresentation());
                 }
-                deleteEntity(other2,cell.getPlayer());
+                deleteEntity(other2, cell.getPlayer());
+                cell.closeMouth();
             }
         }
     }
+
 
     public void move(double cursorX, double cursorY, Player player) {
         for (Cell cell : player.getCells()) {
@@ -223,39 +230,63 @@ public class GameWorld {
             double newX = cell.getX() + cell.getDirectionX() * cell.getSpeed();
             double newY = cell.getY() + cell.getDirectionY() * cell.getSpeed();
 
+            // Mettre à jour le QuadTree après le déplacement
+            quadTree.remove(cell);
+            cell.setX(newX);
+            cell.setY(newY);
+            quadTree.insert(cell);  // Réinsérer dans le QuadTree
+
             for (Cell otherCell : player.getCells()) {
-                if(cell != otherCell) {
+                if (cell != otherCell) {
                     double distBetween = Math.sqrt(Math.pow(newX - otherCell.getX(), 2) + Math.pow(newY - otherCell.getY(), 2));
                     double minDist = cell.calculateRadius(cell.getMass() + otherCell.calculateRadius(otherCell.getMass()));
 
-                    if(distBetween < minDist &&
-                            (System.currentTimeMillis()-cell.getMergeTimer()) < (MIN_TIME_SPLIT + (cell.getMass() / 100)) &&
-                            (System.currentTimeMillis()-otherCell.getMergeTimer()) < (MIN_TIME_SPLIT + (otherCell.getMass() / 100))) {
+                    if (distBetween < minDist &&
+                            (System.currentTimeMillis() - cell.getMergeTimer()) < (MIN_TIME_SPLIT + (cell.getMass() / 100)) &&
+                            (System.currentTimeMillis() - otherCell.getMergeTimer()) < (MIN_TIME_SPLIT + (otherCell.getMass() / 100))) {
                         double overlap = minDist - distBetween;
                         double pushX = (newX - otherCell.getX()) / distBetween * overlap;
                         double pushY = (newY - otherCell.getY()) / distBetween * overlap;
-                        newX+=pushX;
-                        newY+=pushY;
+                        newX += pushX;
+                        newY += pushY;
                     }
                 }
             }
+
             cell.setX(newX);
             cell.setY(newY);
-
         }
     }
+
 
     public void draw(GraphicsContext gc, Camera camera) {
         gc.clearRect(0, 0, getWidth(), getHeight());
         gc.setFill(Color.GREEN);
+
         for (Player player : players) {
             for (Cell cell : player.getCells()) {
                 if (camera.getViewBounds().contains(cell.getX(), cell.getY())) {
+                    // Dessiner la cellule
                     gc.fillOval(cell.getX(), cell.getY(), cell.getWidth(), cell.getHeight());
+
+                    // Dessiner la bouche si l'angle est supérieur à 0
+                    if (cell.getMouthAngle() > 0) {
+                        gc.setFill(Color.BLACK);
+                        gc.fillArc(
+                                cell.getX() - cell.getWidth() / 2,
+                                cell.getY() - cell.getHeight() / 2,
+                                cell.getWidth(),
+                                cell.getHeight(),
+                                90,
+                                -Math.toDegrees(cell.getMouthAngle()),
+                                ArcType.ROUND
+                        );
+                    }
                 }
             }
         }
     }
+
 
     public List<Player> getTopPlayers(int topN) {
         return players.stream()
