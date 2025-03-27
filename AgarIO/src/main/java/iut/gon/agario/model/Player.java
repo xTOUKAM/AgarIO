@@ -32,23 +32,29 @@ public class Player implements Entity {
     }
 
     public void split() {
-        if (cells.size() > 0) {
-            List<Cell> originalCells = new ArrayList<>(cells);
-            for(Cell cell : originalCells) {
-                cell.setMergeTimer();
-                if (cell.getMass() > 10) {
-                    double newMass = cell.getMass() / 2;
-                    cell.setMass(newMass);
-                    Cell newCell1 = new Cell(idCounter++, cell.getX(), cell.getY(), newMass, color, this);
-                    newCell1.setMergeTimer();
-                    newCell1.GiveSpeedBoost();
-                    newCell1.setSpeed(cell.getSpeed()*10);
+        int i = this.cells.size();
+        if(this.cells.size() < 16) {
+            if (cells.size() > 0) {
+                List<Cell> originalCells = new ArrayList<>(cells);
+                for (Cell cell : originalCells) {
+                    if(i < 16) {
+                        i += 1;
+                        cell.setMergeTimer();
+                        if (cell.getMass() > 10) {
+                            double newMass = cell.getMass() / 2;
+                            cell.setMass(newMass);
+                            Cell newCell1 = new Cell(idCounter++, cell.getX(), cell.getY(), newMass, color, this);
+                            newCell1.setMergeTimer();
+                            newCell1.GiveSpeedBoost();
+                            newCell1.setSpeed(cell.getSpeed() * 10);
 
-                    if (cell.getRepresentation().getParent() instanceof Pane parent) {
-                        parent.getChildren().add(newCell1.getRepresentation());
-                        parent.getChildren().add(newCell1.getRepresentationPerimeter());
+                            if (cell.getRepresentation().getParent() instanceof Pane parent) {
+                                parent.getChildren().add(newCell1.getRepresentation());
+                                parent.getChildren().add(newCell1.getRepresentationPerimeter());
+                            }
+                            this.cells.add(newCell1);
+                        }
                     }
-                    this.cells.add(newCell1);
                 }
             }
         }

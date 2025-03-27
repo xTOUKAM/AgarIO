@@ -141,7 +141,7 @@ public class Cell implements Entity {
     }
 
     public double initialCurrentMaxSpeed() {
-        return 50 * Math.pow((10 / this.getMass()), 0.1);
+        return 10 ;
     }
 
     @Override

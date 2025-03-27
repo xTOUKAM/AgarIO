@@ -27,7 +27,7 @@ public class GameWorld {
     private static final double ABSORPTION_RATIO = 1.33;
     private static final double MERGE_OVERLAP = 0.33;
     private static final double DECAY_FACTOR = 6;
-    private static final long SPEED_DECAY_DURATION = 1500;
+    private static final long SPEED_DECAY_DURATION = 1000;
     private static final long CONTROL_RADIUS = 100;
     private static final double MIN_SPEED = 0;
     private static final double MIN_TIME_SPLIT = 10000;
@@ -148,9 +148,40 @@ public class GameWorld {
     }
 
     public double overlap(Entity other, Cell cell) {
-        double distance = Math.sqrt(Math.pow(cell.getX() - other.getX(), 2) + Math.pow(cell.getY() - other.getY(), 2));
-        double combinedRadius = cell.calculateRadius(cell.getMass()) + other.calculateRadius(other.getMass());
-        return (combinedRadius - distance) / combinedRadius;
+        double x1 = cell.getX();
+        double y1 = cell.getY();
+        double x2 = other.getX();
+        double y2 = other.getY();
+
+        double r1 = cell.calculateRadius(cell.getMass());
+        double r2 = other.calculateRadius(other.getMass());
+
+        double d = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+
+        // Si les cercles ne se chevauchent pas
+        if (d >= r1 + r2) {
+            return 0;
+        }
+
+        // Si un cercle est complètement à l'intérieur de l'autre
+        if (d <= Math.abs(r1 - r2)) {
+            return 1; // Le plus petit est totalement recouvert
+        }
+
+        // Calcul de l'aire d'intersection
+        double r1Sq = r1 * r1;
+        double r2Sq = r2 * r2;
+
+        double part1 = r1Sq * Math.acos((d*d + r1Sq - r2Sq) / (2 * d * r1));
+        double part2 = r2Sq * Math.acos((d*d + r2Sq - r1Sq) / (2 * d * r2));
+        double part3 = 0.5 * Math.sqrt((-d + r1 + r2) * (d + r1 - r2) * (d - r1 + r2) * (d + r1 + r2));
+
+        double intersectionArea = part1 + part2 - part3;
+
+        // Calcul du pourcentage de recouvrement par rapport au plus petit cercle
+        double smallerArea = Math.PI * Math.min(r1Sq, r2Sq);
+
+        return intersectionArea / smallerArea;
     }
 
     public boolean canAbsorb(Cell other, Cell cell) {
@@ -195,6 +226,12 @@ public class GameWorld {
         }
     }
 
+    public double exponentialSpeedDecay(double x, double maxSpeed) {
+        double A = 20 * maxSpeed;
+        double B = -Math.log(0.01 / (9 * maxSpeed)) / 1000;
+        return A * Math.exp(-B * x) + maxSpeed;
+    }
+
     public void move(double cursorX, double cursorY, Player player) {
         for (Cell cell : player.getCells()) {
             double dx = cursorX - cell.getX();
@@ -204,16 +241,15 @@ public class GameWorld {
             if (distance == 0) {
                 cell.setSpeed(MIN_SPEED);
             } else {
-                double maxSpeed = cell.initialCurrentMaxSpeed() / Math.sqrt(cell.getMass());
+                double maxSpeed = cell.initialCurrentMaxSpeed() / Math.sqrt((Math.sqrt(cell.getMass())/2));
                 cell.setDirectionX(dx / distance);
                 cell.setDirectionY(dy / distance);
-                if (cell.getSpeed() > cell.initialCurrentMaxSpeed()) {
+                if (cell.getSpeed() > maxSpeed) {
                     long elapsedTime = System.currentTimeMillis() - cell.GetLastSpeedBoostTime();
                     if (elapsedTime >= SPEED_DECAY_DURATION) {
                         cell.setSpeed(maxSpeed);
                     } else {
-                        double decayFactor = Math.exp(-DECAY_FACTOR * elapsedTime / SPEED_DECAY_DURATION);
-                        cell.setSpeed(maxSpeed + (cell.getSpeed() - maxSpeed) * decayFactor);
+                        cell.setSpeed(exponentialSpeedDecay(elapsedTime,maxSpeed));
                     }
                 } else {
                     cell.setSpeed(maxSpeed * Math.min(1.0, distance / CONTROL_RADIUS));
