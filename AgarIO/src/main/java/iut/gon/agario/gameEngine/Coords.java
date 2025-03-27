@@ -1,4 +1,4 @@
-package iut.gon.agario;
+package iut.gon.agario.gameEngine;
 
 public class Coords {
     public double x;

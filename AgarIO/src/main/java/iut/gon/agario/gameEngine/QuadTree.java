@@ -1,9 +1,11 @@
-package iut.gon.agario;
+package iut.gon.agario.gameEngine;
 
 import iut.gon.agario.model.Entity;
+import iut.gon.agario.model.Pellet;
+import javafx.scene.paint.Color;
 
-import java.awt.desktop.AboutEvent;
 import java.util.ArrayList;
+import java.util.Random;
 
 public class QuadTree {
 
@@ -12,7 +14,6 @@ public class QuadTree {
     final ArrayList<Coords> boundary;
     ArrayList<Entity> entities = null;
     ArrayList<QuadTree> children = null;
-
 
     public QuadTree(int depth, ArrayList<Coords> boundary, int maxDepth){
 
@@ -65,8 +66,15 @@ public class QuadTree {
 
     }
 
-    public boolean isInBoundery(double x, double y){
+    public boolean pointIsInBoundary(double x, double y){
         return (x >= this.boundary.get(0).x && y >= this.boundary.get(0).y) && (x <= this.boundary.get(3).x && y <= this.boundary.get(3).y);
+    }
+
+    public boolean isInScope(Coords topLeftCorne, Coords bottomRight){
+        for(Coords corner: this.boundary){
+            if((corner.x > topLeftCorne.x && corner.y > topLeftCorne.y) && (corner.x < bottomRight.x && corner.y < bottomRight.y))return true;
+        }
+        return false;
     }
 
     public void addEntity(Entity entity){
@@ -75,7 +83,7 @@ public class QuadTree {
         }else{
             QuadTree deeperTree = this.children.get(0);
             for(QuadTree quadTree : this.children){
-                if(quadTree.isInBoundery(entity.getX(), entity.getY())){
+                if(quadTree.pointIsInBoundary(entity.getX(), entity.getY())){
                     deeperTree = quadTree;
                 }
             }
@@ -83,8 +91,37 @@ public class QuadTree {
         }
     }
 
+    public void removeEntity(Entity entity){
+        if(depth == maxDepth){
+            this.entities.remove(entity);
+        }
+        else{
+            for(QuadTree quadTree : children){{
+                if(quadTree.pointIsInBoundary(entity.getX(), entity.getY())){
+                    quadTree.removeEntity(entity);
+                }
+            }}
+        }
+    }
 
-    public static QuadTree buildEmptyTree(double maxHeight, double maxWidth, int maxDepth){
+    public ArrayList<Entity> getEntitiesFromPoint(double x, double y, double scopeX, double scopeY){
+
+        Coords topLeft = new Coords(x - scopeX/2, y - scopeY/2);
+        Coords bottomRight = new Coords(x + scopeX/2, y + scopeY/2);
+        if(depth == maxDepth){
+            return this.entities;
+        }else{
+            ArrayList<Entity> allEntity = new ArrayList<>();
+            for(QuadTree quadTree : this.children){
+                if(quadTree.isInScope(topLeft, bottomRight)){
+                    allEntity.addAll(quadTree.getEntitiesFromPoint(x, y, scopeX, scopeY));
+                }
+            }
+            return allEntity;
+        }
+    }
+
+    public static QuadTree buildEmptyTree(double maxWidth, double maxHeight, int maxDepth){
         ArrayList<Coords> statBoundary = new ArrayList<>();
         statBoundary.add(new Coords(0, 0));
         statBoundary.add(new Coords(maxWidth, 0));
@@ -93,8 +130,4 @@ public class QuadTree {
         return new QuadTree(1, statBoundary, maxDepth);
     }
 
-    public static void main(String[] args) {
-        QuadTree quadTree = QuadTree.buildEmptyTree(1000, 1000, 5);
-        System.out.println(quadTree.toString());
-    }
 }
