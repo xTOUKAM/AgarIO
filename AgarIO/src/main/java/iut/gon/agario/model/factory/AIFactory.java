@@ -19,6 +19,6 @@ public class AIFactory implements Factory{
         int g = rand.nextInt(255);
         int b = rand.nextInt(255);
         Color color = Color.rgb(r,g,b);
-        return new AIPlayer(X,Y,10, color);
+        return new AIPlayer(X,Y,10, color, 1);
     }
 }

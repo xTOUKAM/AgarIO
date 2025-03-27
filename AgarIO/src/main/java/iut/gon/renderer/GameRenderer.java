@@ -4,6 +4,7 @@ import iut.gon.agario.model.Camera;
 import iut.gon.agario.model.GameWorld;
 import iut.gon.agario.model.Pellet;
 import iut.gon.agario.model.Player;
+import javafx.application.Application;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
@@ -31,43 +32,23 @@ public class GameRenderer extends Thread {
     public void decodeJSON(String jsonString) {
         JSONObject jsonObject = new JSONObject(jsonString);
 
-        JSONArray playersArray = jsonObject.getJSONArray("players");
-
-        // On supprime les anciennes informations des joueurs
-        players.clear();
-
         // On récupère les informations des joueurs
-        decodePlayers(jsonObject.getJSONArray("players"));
+        decodeEntity(jsonObject.getJSONArray("entities"));
 
-        // On récupère les informations des pastilles
-        decodePellets(jsonObject.getJSONArray("pellets"));
-
-        // On récupère les informations du monde
-        decodeGameWorld(jsonObject.getJSONObject("gameWorld"));
     }
 
-    public void decodePlayers(JSONArray playersArray) {
-        players.clear();
-        for(int i = 0; i < playersArray.length(); i++) {
-            JSONObject playerObject = playersArray.getJSONObject(i);
-            String name = playerObject.getString("name");
-            double x = playerObject.getDouble("x");
-            double y = playerObject.getDouble("y");
-            double mass = playerObject.getDouble("mass");
-            String color = playerObject.getString("color");
-            players.add(new Player(x,y,mass, Color.web(color)));
-        }
-    }
 
-    public void decodePellets(JSONArray pelletsArray) {
+
+    public void decodeEntity(JSONArray entityArray) {
         pellets.clear();
-        for(int i = 0; i < pelletsArray.length(); i++) {
-            JSONObject pelletObject = pelletsArray.getJSONObject(i);
-            double x = pelletObject.getDouble("x");
-            double y = pelletObject.getDouble("y");
-            double radius = pelletObject.getDouble("radius");
-            String color = pelletObject.getString("color");
-            pellets.add(new Pellet(x,y,radius,Color.web(color)));
+        players.clear();
+        for(int i = 0; i < entityArray.length(); i++) {
+            JSONObject entityObject = entityArray.getJSONObject(i);
+            if(entityObject.getBoolean("isPlayer")){
+                players.add(new Player(entityObject.getDouble("x"), entityObject.getDouble("y"), entityObject.getDouble("mass"),Color.web(entityObject.getString("color")), entityObject.getInt("id")));
+            }else{
+                pellets.add(new Pellet(entityObject.getDouble("x"), entityObject.getDouble("y"), entityObject.getInt("radius"),Color.web(entityObject.getString("color"))));
+            }
         }
     }
 

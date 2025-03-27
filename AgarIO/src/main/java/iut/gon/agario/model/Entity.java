@@ -1,5 +1,7 @@
 package iut.gon.agario.model;
 
+import org.json.JSONObject;
+
 public interface  Entity {
 
      int getId();
@@ -13,5 +15,7 @@ public interface  Entity {
 
      double getHeight();
 
-     double calculateRadius(double mass);
+     double calculateRadius();
+
+     JSONObject getJSON();
 }

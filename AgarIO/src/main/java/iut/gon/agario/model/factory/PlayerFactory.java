@@ -10,7 +10,7 @@ import java.util.Random;
 
 public class PlayerFactory implements Factory {
 
-    public static Entity factory(Double maxX, Double maxY) {
+    public static Entity factory(Double maxX, Double maxY, int id) {
         Random rand = new Random();
         double X = rand.nextDouble(maxX);
         double Y = rand.nextDouble(maxY);
@@ -18,6 +18,6 @@ public class PlayerFactory implements Factory {
         int g = rand.nextInt(255);
         int b = rand.nextInt(255);
         Color color = Color.rgb(r,g,b);
-        return new Player(X,Y,10, color);
+        return new Player(X,Y,10, color, id);
     }
 }
