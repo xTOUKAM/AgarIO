@@ -35,14 +35,15 @@ public class Player implements Entity {
         if (cells.size() > 0) {
             List<Cell> originalCells = new ArrayList<>(cells);
             for(Cell cell : originalCells) {
+                cell.setMergeTimer();
                 if (cell.getMass() > 10) {
                     double newMass = cell.getMass() / 2;
                     cell.setMass(newMass);
-                    Cell newCell1 = new Cell(idCounter++, cell.getX() + 100, cell.getY() + 100, newMass, color, this);
+                    Cell newCell1 = new Cell(idCounter++, cell.getX(), cell.getY(), newMass, color, this);
+                    newCell1.setMergeTimer();
                     newCell1.GiveSpeedBoost();
                     newCell1.setSpeed(cell.getSpeed()*10);
-                    newCell1.setMergeTimer();
-                    cell.setMergeTimer();
+
                     if (cell.getRepresentation().getParent() instanceof Pane parent) {
                         parent.getChildren().add(newCell1.getRepresentation());
                     }
