@@ -200,7 +200,7 @@ public class Main extends Application {
 
         // Mettre à jour le monde du jeu
         gameWorld.update();  // Met à jour les collisions et la logique de jeu
-            //bot.makeDecision(gameWorld);
+        //bot.makeDecision(gameWorld);
 
         // Check for collisions between player and pastilles
         checkCollisions();
@@ -230,7 +230,7 @@ public class Main extends Application {
         // Redraw all players and bots (on the main game canvas)
         for (Player player : gameWorld.getPlayers()) {
             for(Cell cell : player.getCells())
-            gameGC.setFill(cell.getColor());
+                gameGC.setFill(cell.getColor());
             gameGC.fillOval(player.getX() - player.getMass() / 2, player.getY() - player.getMass() / 2, player.getMass(), player.getMass());
         }
 
@@ -251,17 +251,6 @@ public class Main extends Application {
                 if (gameWorld.canAbsorbPellet(pastille, cell)) {
                     gameWorld.absorb(pastille, cell);
                     eatenPastilles.add(pastille);
-                    // Lancer l'animation d'ouverture de la bouche lorsque la pastille est mangée
-                    Animation animation = new Animation(cell.getRepresentation());
-                    animation.startAnimation();
-
-                    // Optionnel: fermer la bouche après un délai de 300ms pour simuler la fermeture
-                    new java.util.Timer().schedule(new java.util.TimerTask() {
-                        @Override
-                        public void run() {
-                            animation.resetAnimation(); // Réinitialiser l'animation pour simuler la fermeture
-                        }
-                    }, 300);
                 }
             }
             pellets.removeAll(eatenPastilles);
@@ -295,18 +284,6 @@ public class Main extends Application {
                     if (gameWorld.canAbsorbPellet(pastille, cell)) {
                         gameWorld.absorb(pastille, cell);
                         eatenPastilles.add(pastille);
-
-                        // Lancer l'animation d'ouverture de la bouche pour les bots aussi
-                        Animation animation = new Animation(cell.getRepresentation());
-                        animation.startAnimation();
-
-                        // Optionnel: fermer la bouche après un délai de 300ms pour simuler la fermeture
-                        new java.util.Timer().schedule(new java.util.TimerTask() {
-                            @Override
-                            public void run() {
-                                animation.resetAnimation(); // Réinitialiser l'animation pour simuler la fermeture
-                            }
-                        }, 300);
                     }
                 }
                 pellets.removeAll(eatenPastilles);
@@ -315,24 +292,45 @@ public class Main extends Application {
                         parent.getChildren().remove(pastille.getRepresentation());
                     }
                 }
-                // Vérification des collisions avec d'autres cellules (bots ou joueurs)
                 List<Cell> playerCells = new ArrayList<>(player.getCells());
-                for (Cell playerCell : playerCells) {
-                    // Si le joueur mange une cellule du bot (ou vice-versa)
-                    if (gameWorld.canAbsorb(cell, playerCell)) {
-                        gameWorld.absorb(cell, playerCell);
-
-                        // Lancer l'animation d'ouverture de la bouche pour le joueur qui mange un bot
-                        Animation animation = new Animation(playerCell.getRepresentation());
-                        animation.startAnimation();
-
-                        // Optionnel: fermer la bouche après un délai de 300ms pour simuler la fermeture
-                        new java.util.Timer().schedule(new java.util.TimerTask() {
-                            @Override
-                            public void run() {
-                                animation.resetAnimation(); // Réinitialiser l'animation pour simuler la fermeture
+                for(Cell playerCell : playerCells) {
+                    List<AIPlayer> eatenAI = new ArrayList<>();
+                    for (AIPlayer aiPlayer : bots) {
+                        List<Cell> listCell = new ArrayList<>(aiPlayer.getCells());
+                        for (Cell aiCell : listCell) {
+                            if(gameWorld.canAbsorb(aiCell,playerCell)){
+                                if(aiPlayer.getCells().size()==0){
+                                    eatenAI.add(aiPlayer);
+                                }
+                                gameWorld.absorb(aiCell,playerCell);
+                            }else if(gameWorld.canAbsorb(playerCell,aiCell)){
+                                gameWorld.absorb(playerCell,aiCell);
                             }
-                        }, 300);  // Temps de fermeture
+
+
+                    /*if (playerCell.getRepresentation().getBoundsInParent().intersects(aiCell.getRepresentation().getBoundsInParent())) {
+                        if (gameWorld.canAbsorb(aiCell, playerCell)) {
+                            gameWorld.absorb(aiCell, playerCell);
+                            eatenAI.add(aiPlayer);
+                        } else if (gameWorld.canAbsorb(playerCell, aiCell)) {
+                            gameWorld.absorb(playerCell, aiCell);
+                            Pane pane = (Pane) playerCell.getRepresentation().getParent();
+                            if (pane != null) {
+                                pane.getChildren().remove(playerCell.getRepresentation());
+                            }
+                        }
+                    }*/
+                        }
+                    }
+                    // Enlever les bots mangés
+                    bots.removeAll(eatenAI);
+                    for (AIPlayer aiPlayer : eatenAI) {
+                        for (Cell aiCell : aiPlayer.getCells()) {
+                            if (cell.getRepresentation().getParent() instanceof Pane parent) {
+                                parent.getChildren().remove(aiCell.getRepresentation());
+                                parent.getChildren().remove(aiCell.getRepresentationPerimeter());
+                            }
+                        }
                     }
                 }
             }

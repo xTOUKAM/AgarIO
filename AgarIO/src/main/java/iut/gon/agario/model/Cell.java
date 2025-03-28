@@ -5,8 +5,6 @@ import javafx.beans.binding.DoubleBinding;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.Arc;
-import javafx.scene.shape.ArcType;
 import javafx.scene.shape.Circle;
 
 public class Cell implements Entity {
@@ -21,12 +19,6 @@ public class Cell implements Entity {
     private double directionX, directionY;
     private long lastSpeedBoostTime;
     private Player player;
-    // Ajoutez une propriété pour gérer l'angle d'ouverture de la bouche
-    private DoubleProperty mouthAngle; // Angle de la bouche, en radians
-    private static final double MAX_MOUTH_ANGLE = Math.PI / 2; // Maximum de l'angle d'ouverture (90°)
-    private static final double MOUTH_SPEED = 0.1; // Vitesse de l'animation de la bouche (modifiable)
-    // Déclarez un Arc qui représente la bouche de la cellule
-    private Arc mouthRepresentation;
 
     private long mergeTimer;
 
@@ -36,20 +28,8 @@ public class Cell implements Entity {
         this.y = new SimpleDoubleProperty(startY);
         this.mass = new SimpleDoubleProperty(startMass);
         this.color = color;
-        this.mouthAngle = new SimpleDoubleProperty(0.0); // Initialisation de l'angle à 0 (bouche fermée)
         this.representation = new Circle(calculateRadius(startMass), Color.BLACK);
-        this.mouthRepresentation = new Arc();
-        this.mouthRepresentation.setType(ArcType.ROUND);
-        this.mouthRepresentation.setFill(Color.BLACK);
-        this.mouthRepresentation.centerXProperty().bind(this.x);
-        this.mouthRepresentation.centerYProperty().bind(this.y);
-        this.mouthRepresentation.radiusXProperty().bind(this.representation.radiusProperty());
-        this.mouthRepresentation.radiusYProperty().bind(this.representation.radiusProperty());
         this.representationPerimettre = new Circle(calculatePerimeter(startMass), this.color);
-        this.mouthRepresentation.setLength(mouthAngle.get());
-        this.mouthAngle.addListener((observable, oldValue, newValue) -> {
-            mouthRepresentation.setLength(newValue.doubleValue());
-        });
         bindProperties();
         this.speed = initialCurrentMaxSpeed() / (Math.sqrt(this.getMass()));
         this.player = player;
@@ -71,18 +51,6 @@ public class Cell implements Entity {
                 this.mass
         );
         this.representationPerimettre.radiusProperty().bind(PerimetersBinding);
-    }
-
-    public void openMouth() {
-        if (this.mouthAngle.get() < MAX_MOUTH_ANGLE) {
-            this.mouthAngle.set(this.mouthAngle.get() + MOUTH_SPEED); // Augmenter progressivement l'angle
-        }
-    }
-
-    public void closeMouth() {
-        if (this.mouthAngle.get() > 0) {
-            this.mouthAngle.set(this.mouthAngle.get() - MOUTH_SPEED); // Réduire progressivement l'angle
-        }
     }
 
     public Player getPlayer(){
@@ -173,7 +141,7 @@ public class Cell implements Entity {
     }
 
     public double initialCurrentMaxSpeed() {
-        return 50 * Math.pow((10 / this.getMass()), 0.1);
+        return 10 ;
     }
 
     @Override
@@ -201,17 +169,4 @@ public class Cell implements Entity {
     public long getMergeTimer(){
         return this.mergeTimer;
     }
-
-    public double getMouthAngle() {
-        return this.mouthAngle.get();
-    }
-
-    public void setMouthAngle(double angle) {
-        this.mouthAngle.set(angle);
-    }
-
-    public DoubleProperty mouthAngleProperty() {
-        return mouthAngle;
-    }
 }
-
