@@ -3,6 +3,7 @@ package iut.gon.renderer;
 import iut.gon.agario.model.Entity;
 import iut.gon.agario.model.Player;
 import iut.gon.agario.model.Pellet;
+import iut.gon.serveur.GameServer;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
@@ -14,18 +15,19 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class GameRenderer {
     private final Canvas canvas;
     private List<Player> players; // Tous les joueurs visibles
     private Player player;        // Joueur principal
-    private List<Pellet> pellets; // Toutes les pastilles visibles
+    private CopyOnWriteArrayList<Pellet> pellets; // Toutes les pastilles visibles
     private double cameraX, cameraY, cameraZoom;
 
     public GameRenderer(Canvas canvas) {
         this.canvas = canvas;
         this.players = new ArrayList<>();
-        this.pellets = new ArrayList<>();
+        this.pellets = new CopyOnWriteArrayList<>();
         this.cameraZoom = 1.0; // Par défaut
     }
 
@@ -108,12 +110,20 @@ public class GameRenderer {
         }
     }
 
+    // GameRenderer
     private void renderPlayers(GraphicsContext gc) {
         for (Player p : players) {
             // Calcul des coordonnées ajustées selon la caméra
             double adjustedX = (p.getX() - cameraX) * cameraZoom + canvas.getWidth() / 2;
             double adjustedY = (p.getY() - cameraY) * cameraZoom + canvas.getHeight() / 2;
             double size = Math.sqrt(p.getMass()) * cameraZoom;
+
+            // Vérifiez si le joueur dépasse les limites du terrain
+            double terrainWidth = GameServer.WIDTH_MAP; // Largeur du terrain définie dans GameEngine
+            double terrainHeight = GameServer.HEIGHT_MAP; // Hauteur du terrain définie dans GameEngine
+            if (p.getX() < 0 || p.getX() > terrainWidth || p.getY() < 0 || p.getY() > terrainHeight) {
+                continue; // Ignorer le rendu pour les joueurs hors limites
+            }
 
             // Dessiner le joueur
             gc.setFill(p.getColor());
@@ -129,12 +139,12 @@ public class GameRenderer {
             gc.fillText(playerName, textX, textY);
         }
     }
-
     private void renderPellets(GraphicsContext gc) {
         if (pellets.isEmpty()) {
             System.out.println("No pellets to render!");
             return;
         }
+
 
         for (Pellet pellet : pellets) {
             // Calcul des coordonnées ajustées

@@ -11,7 +11,7 @@ import org.json.JSONObject;
 public class Cell implements Entity {
     private final int id;
     private final Circle representation;
-    private final Circle representationPerimeter;
+    private final Circle representationPerimettre;
     private final DoubleProperty x;
     private final DoubleProperty y;
     private final DoubleProperty mass;
@@ -19,7 +19,7 @@ public class Cell implements Entity {
     private final Color color;
     private double directionX, directionY;
     private long lastSpeedBoostTime;
-    private final Player player;
+    private Player player;
 
     private long mergeTimer;
 
@@ -30,7 +30,7 @@ public class Cell implements Entity {
         this.mass = new SimpleDoubleProperty(startMass);
         this.color = color;
         this.representation = new Circle(calculateRadius(), Color.BLACK);
-        this.representationPerimeter = new Circle(calculatePerimeter(startMass), this.color);
+        this.representationPerimettre = new Circle(calculatePerimeter(startMass), this.color);
         bindProperties();
         this.speed = initialCurrentMaxSpeed() / (Math.sqrt(this.getMass()));
         this.player = player;
@@ -40,18 +40,18 @@ public class Cell implements Entity {
         this.representation.centerXProperty().bind(this.x);
         this.representation.centerYProperty().bind(this.y);
         DoubleBinding radiusBinding = Bindings.createDoubleBinding(
-                this::calculateRadius,
+                () -> calculateRadius(),
                 this.mass
         );
         this.representation.radiusProperty().bind(radiusBinding);
 
-        this.representationPerimeter.centerXProperty().bind(this.x);
-        this.representationPerimeter.centerYProperty().bind(this.y);
+        this.representationPerimettre.centerXProperty().bind(this.x);
+        this.representationPerimettre.centerYProperty().bind(this.y);
         DoubleBinding PerimetersBinding = Bindings.createDoubleBinding(
                 () -> calculatePerimeter(this.mass.get()),
                 this.mass
         );
-        this.representationPerimeter.radiusProperty().bind(PerimetersBinding);
+        this.representationPerimettre.radiusProperty().bind(PerimetersBinding);
     }
 
     public Player getPlayer(){
@@ -62,7 +62,7 @@ public class Cell implements Entity {
         return representation;
     }
 
-    public Circle getRepresentationPerimeter() { return representationPerimeter; }
+    public Circle getRepresentationPerimeter() { return representationPerimettre; }
 
 
     public double calculatePerimeter(double mass) {
@@ -81,6 +81,10 @@ public class Cell implements Entity {
 
     public void setX(double x) {
         this.x.set(x);
+    }
+
+    public DoubleProperty xProperty() {
+        return x;
     }
 
     @Override
@@ -129,6 +133,9 @@ public class Cell implements Entity {
         return this.color;
     }
 
+    public DoubleProperty massProperty() {
+        return mass;
+    }
 
     public double initialCurrentMaxSpeed() {
         return 10 ;
@@ -146,9 +153,13 @@ public class Cell implements Entity {
 
     @Override
     public double calculateRadius() {
-        return 10 * Math.sqrt(this.getMass());
+        return 10 * Math.sqrt(mass.get());
     }
 
+    @Override
+    public JSONObject getJSON() {
+        return null;
+    }
 
     public long GetLastSpeedBoostTime() {
         return lastSpeedBoostTime;
@@ -165,11 +176,4 @@ public class Cell implements Entity {
     public long getMergeTimer(){
         return this.mergeTimer;
     }
-    @Override
-    public JSONObject getJSON() {
-        return null;
-    }
-
-
 }
-

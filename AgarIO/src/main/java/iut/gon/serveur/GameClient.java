@@ -6,6 +6,7 @@ import javafx.animation.Timeline;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
+import javafx.scene.input.KeyCode;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import javafx.util.Duration;
@@ -101,6 +102,19 @@ public class GameClient extends Application {
         GameClient gameClient = new GameClient("127.0.0.1", 1234);
         gameClient.serverMessageHandler();
         gameClient.gameRenderer = gameRenderer;
+
+        canvas.setOnMouseMoved(event -> {
+            double x = event.getX();
+            double y = event.getY();
+            Communication.send(gameClient.serverInput, MessageType.CLIENT_MOVEMENT, x + "," + y );
+        });
+
+        primaryStage.getScene().setOnKeyPressed(event -> {
+            if (event.getCode() == KeyCode.SPACE) {
+                Communication.send(gameClient.serverInput, MessageType.CLIENT_SPLIT, "split" );
+            }
+        });
+
 
         Timeline timeline = new Timeline(new KeyFrame(Duration.millis(33), e -> gameRenderer.update())); // Ajuster pour 30 FPS
         timeline.setCycleCount(Timeline.INDEFINITE);

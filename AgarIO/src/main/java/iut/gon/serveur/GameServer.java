@@ -17,6 +17,9 @@ public class GameServer {
     private int lastID = 1;
     private boolean running = true;
     private GameEngine gameEngine = null;
+    public static int WIDTH_MAP = 200;
+    public static int HEIGHT_MAP = 200;
+
 
     public GameServer(int port){
         try {
@@ -96,7 +99,7 @@ public class GameServer {
 
     public static void launch(int port){
         GameServer gameServer = new GameServer(port);
-        GameEngine gameEngine = new GameEngine(gameServer, 100, 100, 10);
+        GameEngine gameEngine = new GameEngine(gameServer, WIDTH_MAP, HEIGHT_MAP, 10);
 
 
         gameServer.setGameEngine(gameEngine);

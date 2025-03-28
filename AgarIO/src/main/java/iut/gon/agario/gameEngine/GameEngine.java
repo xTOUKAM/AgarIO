@@ -3,6 +3,8 @@ package iut.gon.agario.gameEngine;
 import iut.gon.agario.model.*;
 import iut.gon.agario.model.factory.PelletFactory;
 import iut.gon.agario.model.factory.PlayerFactory;
+import iut.gon.renderer.GameRenderer;
+import iut.gon.serveur.ClientHandler;
 import iut.gon.serveur.GameServer;
 import iut.gon.serveur.MessageType;
 import javafx.scene.layout.Pane;
@@ -25,7 +27,7 @@ public class GameEngine extends Thread {
     private final QuadTree gameMap;
     private final double maxWidth;
     private final double maxHeight;
-    private final HashMap<Integer, Player> players = new HashMap<>();
+    public final HashMap<Integer, Player> players = new HashMap<>();
     private final HashMap<Integer, Coords> playersCursors = new HashMap<>();
 
 
@@ -68,7 +70,7 @@ public class GameEngine extends Thread {
     }
 
     public void addPlayer(int ID){
-        Player newPlayer = (Player) PlayerFactory.factory(maxWidth, maxHeight, ID);
+        Player newPlayer = (Player) PlayerFactory.factory((double) (GameServer.WIDTH_MAP/2), (double) (GameServer.HEIGHT_MAP/2), ID);
         players.put(ID, newPlayer);
         gameMap.addEntity(newPlayer);
     }
@@ -114,7 +116,7 @@ public class GameEngine extends Thread {
             for (Cell otherCell : player.getCells()) {
                 if(cell != otherCell) {
                     double distBetween = Math.sqrt(Math.pow(newX - otherCell.getX(), 2) + Math.pow(newY - otherCell.getY(), 2));
-                    double minDist = cell.calculateRadius();
+                    double minDist = 10 * Math.sqrt(cell.getMass() + otherCell.calculateRadius());
 
                     if(distBetween < minDist &&
                             (System.currentTimeMillis()-cell.getMergeTimer()) < (MIN_TIME_SPLIT + (cell.getMass() / 100)) &&
@@ -254,6 +256,9 @@ public class GameEngine extends Thread {
 
 
                     //movement
+
+
+
                     Coords cursor = playersCursors.get(player.getId());
                     move(cursor.x, cursor.y, player);
 

@@ -12,4 +12,5 @@ public enum MessageType {
     CLIENT_STATUS,
     CLIENT_MOVEMENT,
     CLIENT_CHAT_MESSAGE,
+    CLIENT_SPLIT,
 }

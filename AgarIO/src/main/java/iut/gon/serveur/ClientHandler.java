@@ -36,15 +36,34 @@ public class ClientHandler extends Thread {
                 switch (messageType) {
                     case CLIENT_STATUS -> {
                         this.gameServer.updateClientStatus(this.ID, Boolean.parseBoolean(clientOutput.readLine()));
-                        gameEngine.updateCursor(this.ID, 0, 0);
                         gameEngine.addPlayer(this.ID);
+                        gameEngine.updateCursor(this.ID, gameEngine.players.get(ID).getX(), gameEngine.players.get(ID).getY());
 
                     }
                     case CLIENT_MOVEMENT -> {
                         String movementData = clientOutput.readLine();
-                        // Envoyer les données de mouvement au serveur pour gestion
-                        gameServer.sendToAllClient(messageType, movementData, true);
+                        //System.out.println("SERVER | Position reçue de " + ID + " : " + movementData);
+
+                        String x = movementData.split(",")[0];
+                        String y = movementData.split(",")[1];
+
+                        double dX = Double.parseDouble(x);
+                        double dY = Double.parseDouble(y);
+                        System.out.println("SERVER | Position reçue de " + ID + " : X = "+dX+"  | Y = "+dY);
+
+                        gameEngine.updateCursor(ID, dX, dY);
+
+                        //gameServer.sendToAllClient(messageType, movementData, true);
                     }
+                    case CLIENT_SPLIT -> {
+                        String spaceBar = clientOutput.readLine();
+                        System.out.println("SPLIT");
+
+                        gameEngine.players.get(ID).split();
+
+                        //gameServer.sendToAllClient(messageType, movementData, true);
+                    }
+
                     case CLIENT_CHAT_MESSAGE -> {
                         String chatMessage = clientOutput.readLine();
                         // Gérer le chat ici
