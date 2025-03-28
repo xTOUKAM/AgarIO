@@ -19,6 +19,7 @@ public class Cell implements Entity {
     private double directionX, directionY;
     private long lastSpeedBoostTime;
     private Player player;
+    private Animation animation;
 
     private long mergeTimer;
 
@@ -47,10 +48,20 @@ public class Cell implements Entity {
         this.representationPerimettre.centerXProperty().bind(this.x);
         this.representationPerimettre.centerYProperty().bind(this.y);
         DoubleBinding PerimetersBinding = Bindings.createDoubleBinding(
-                () -> calculatePerimeter(this.mass.get()),
+                () -> calculateAngle(this.mass.get()),
                 this.mass
         );
         this.representationPerimettre.radiusProperty().bind(PerimetersBinding);
+    }
+
+    public void unBindProperties() {
+        this.representation.centerXProperty().unbind();
+        this.representation.centerYProperty().unbind();
+        this.representation.radiusProperty().unbind();
+        this.representationPerimettre.centerXProperty().unbind();
+        this.representationPerimettre.centerYProperty().unbind();
+        this.representationPerimettre.radiusProperty().unbind();
+        this.animation = new Animation(this.representation, this.representationPerimettre);
     }
 
     public Player getPlayer(){
@@ -70,6 +81,10 @@ public class Cell implements Entity {
 
     public double calculatePerimeter(double mass) {
         return 3 * Math.PI * Math.sqrt(mass);
+    }
+
+    public double calculateAngle(double mass) {
+        return (3 * Math.sqrt(3) / 4) * mass * mass;
     }
 
     @Override
