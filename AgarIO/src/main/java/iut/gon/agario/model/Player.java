@@ -130,4 +130,12 @@ public class Player implements Entity {
         JSONPlayer.put("id", id);
         return JSONPlayer;
     }
+
+    public void setX(double newX) {
+        this.directionX = newX;
+    }
+
+    public void setY(double newY) {
+        this.directionY = newY;
+    }
 }

@@ -139,72 +139,74 @@ public class GameRenderer {
             gc.fillText(playerName, textX, textY);
         }
     }
+
     private void renderPellets(GraphicsContext gc) {
-        if (pellets.isEmpty()) {
-            System.out.println("No pellets to render!");
-            return;
-        }
-
-
         for (Pellet pellet : pellets) {
-            // Calcul des coordonnées ajustées
+            // Calcul des coordonnées ajustées selon la caméra
             double adjustedX = (pellet.getX() - cameraX) * cameraZoom + canvas.getWidth() / 2;
             double adjustedY = (pellet.getY() - cameraY) * cameraZoom + canvas.getHeight() / 2;
-            double pelletSize = Math.max(pellet.getRadius() * cameraZoom, 5); // Taille minimale garantie
+            double size = pellet.getRadius() * 2 * cameraZoom; // Taille basée sur le rayon et le zoom
 
-            // Étendre légèrement la zone visible pour inclure les pastilles proches des bords
-            if (adjustedX < -pelletSize || adjustedX > canvas.getWidth() + pelletSize ||
-                    adjustedY < -pelletSize || adjustedY > canvas.getHeight() + pelletSize) {
-                continue;
+            // Vérifiez si le pellet dépasse les limites du terrain
+            double terrainWidth = GameServer.WIDTH_MAP;
+            double terrainHeight = GameServer.HEIGHT_MAP;
+            if (pellet.getX() < 0 || pellet.getX() > terrainWidth || pellet.getY() < 0 || pellet.getY() > terrainHeight) {
+                continue; // Ignorer les pellets hors limites
             }
 
-            // Dessiner la pastille
-            gc.setFill(pellet.getColor().brighter());
-            gc.fillOval(adjustedX - pelletSize / 2, adjustedY - pelletSize / 2, pelletSize, pelletSize);
-
-            // Dessiner le contour pour améliorer la visibilité
-            gc.setStroke(Color.BLACK);
-            gc.setLineWidth(2);
-            gc.strokeOval(adjustedX - pelletSize / 2, adjustedY - pelletSize / 2, pelletSize, pelletSize);
-
-            // Animation d'absorption si le joueur est proche
-            if (player != null && Math.hypot(player.getX() - pellet.getX(), player.getY() - pellet.getY()) < Math.sqrt(player.getMass())) {
-                gc.setStroke(Color.YELLOW);
-                gc.setLineWidth(3);
-                gc.strokeOval(adjustedX - pelletSize / 2 - 3, adjustedY - pelletSize / 2 - 3, pelletSize + 6, pelletSize + 6);
+            // Vérifier si le pellet est visible sur le canvas
+            if (adjustedX < -size || adjustedX > canvas.getWidth() + size || adjustedY < -size || adjustedY > canvas.getHeight() + size) {
+                continue; // Ignorer les pellets hors du champ de vision
             }
+
+            // Dessiner le pellet
+            gc.setFill(pellet.getColor());
+            gc.fillOval(pellet.getX() - cameraX / 2, pellet.getY() - cameraY / 2, size, size);
         }
     }
 
     private void renderMiniMap(GraphicsContext gc) {
-        double miniMapSize = 150;
-        double margin = 20;
-        double xStart = canvas.getWidth() - miniMapSize - margin;
-        double yStart = canvas.getHeight() - miniMapSize - margin;
+        double miniMapSize = 150; // Taille de la mini-map
+        double margin = 20; // Marge autour de la mini-map
+        double xStart = canvas.getWidth() - miniMapSize - margin; // Position X de la mini-map
+        double yStart = canvas.getHeight() - miniMapSize - margin; // Position Y de la mini-map
 
-        // Fond sombre et sobre avec coins arrondis
+        // Fond sombre avec coins arrondis
         gc.setFill(Color.rgb(20, 20, 20, 0.95));
         gc.fillRoundRect(xStart, yStart, miniMapSize, miniMapSize, 20, 20);
 
-        // Dimensions de la zone visible dans le jeu
-        double visibleWidth = 2000 / cameraZoom;
-        double visibleHeight = 2000 / cameraZoom;
+        // Dimensions totales du terrain
+        double terrainWidth = GameServer.WIDTH_MAP;
+        double terrainHeight = GameServer.HEIGHT_MAP;
 
-        // Ajout des joueurs dans la mini-carte
+        // Échelle pour convertir les positions globales en coordonnées sur la mini-map
+        double scaleX = miniMapSize / terrainWidth;
+        double scaleY = miniMapSize / terrainHeight;
+
+        // Ajout des joueurs dans la mini-map
         for (Player p : players) {
-            double scaledX = ((p.getX() - cameraX) / visibleWidth) * miniMapSize + xStart;
-            double scaledY = ((p.getY() - cameraY) / visibleHeight) * miniMapSize + yStart;
+            double scaledX = xStart + (p.getX() * scaleX);
+            double scaledY = yStart + (p.getY() * scaleY);
 
             if (p.equals(player)) {
-                gc.setFill(Color.YELLOW);
-                gc.fillOval(scaledX - 4, scaledY - 4, 8, 8);
+                gc.setFill(Color.YELLOW); // Couleur spécifique pour le joueur principal
+                gc.fillOval(scaledX - 4, scaledY - 4, 8, 8); // Taille plus grande
             } else {
-                gc.setFill(p.getColor());
-                gc.fillOval(scaledX - 2, scaledY - 2, 4, 4);
+                gc.setFill(p.getColor()); // Couleur des autres joueurs
+                gc.fillOval(scaledX - 2, scaledY - 2, 4, 4); // Taille standard
             }
         }
 
-        // Titre sobre pour identifier la mini-carte
+        // Ajout des pellets dans la mini-map
+        for (Pellet pellet : pellets) {
+            double scaledX = xStart + (pellet.getX() * scaleX);
+            double scaledY = yStart + (pellet.getY() * scaleY);
+
+            gc.setFill(pellet.getColor());
+            gc.fillOval(scaledX - 1, scaledY - 1, 2, 2); // Taille réduite pour les pellets
+        }
+
+        // Titre de la mini-map
         gc.setFill(Color.WHITE);
         gc.setFont(new Font("Arial", 12));
         gc.fillText("Mini-Map", xStart + 10, yStart + 15);
